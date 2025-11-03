@@ -1,35 +1,32 @@
 import { useState } from "react";
-
-// icons
+import { useNavigate, useLocation } from "react-router-dom";
 import { ImBooks } from "react-icons/im";
 import { MdMenuOpen, MdDashboard } from "react-icons/md";
 import { SiGoogleclassroom } from "react-icons/si";
-import {
-  FaChalkboardTeacher,
-  FaUserCircle,
-  FaBookOpen,
-  FaMoneyBillWave,
-  FaUserCheck,
+import {FaChalkboardTeacher, FaUserCheck, FaMoneyBillWave, FaBookOpen, FaBook, FaUserCircle
 } from "react-icons/fa";
 import { IoMegaphoneOutline } from "react-icons/io5";
 
 const menuItems = [
-  { icons: <MdDashboard size={30} />, label: "Dashboard" },
-  { icons: <ImBooks size={30} />, label: "Subject" },
-  { icons: <SiGoogleclassroom size={30} />, label: "ClassRoom" },
-  { icons: <FaChalkboardTeacher size={30} />, label: "Class" },
-  { icons: <FaUserCheck size={30} />, label: "Attendance" },
-  { icons: <IoMegaphoneOutline size={30} />, label: "Notice" },
-  { icons: <FaMoneyBillWave size={30} />, label: "Fee Model" },
-  { icons: <FaBookOpen size={30} />, label: "Homework" },
+  { icon: <MdDashboard size={26} />, label: "Dashboard", path: "/" },
+  { icon: <ImBooks size={26} />, label: "Subjects", path: "/subjects" },
+  { icon: <SiGoogleclassroom size={26} />, label: "Classroom", path: "/classroom" },
+  { icon: <FaChalkboardTeacher size={26} />, label: "Classes", path: "/classes" },
+  { icon: <FaUserCheck size={26} />, label: "Attendance", path: "/attendance" },
+  { icon: <IoMegaphoneOutline size={26} />, label: "Notice", path: "/notice" },
+  { icon: <FaMoneyBillWave size={26} />, label: "Fees", path: "/fees" },
+  { icon: <FaBookOpen size={26} />, label: "Homework", path: "/homework" },
+  { icon: <FaBook size={26} />, label: "Library", path: "/library" },
 ];
 
 export default function Sidebar() {
   const [open, setOpen] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <nav
-      className={`shadow-md h-screen p-2 flex flex-col duration-500 bg-blue-600 text-white ${
+      className={`shadow-md h-full p-2 flex flex-col duration-500 bg-blue-600 text-white ${
         open ? "w-60" : "w-16"
       }`}
     >
@@ -38,59 +35,60 @@ export default function Sidebar() {
         <img
           src="/images/Navonous_Logo.png"
           alt="Logo"
-          className={`${open ? "w-20" : "w-0"} rounded-md`}
+          className={`${open ? "w-20" : "w-0"} rounded-md transition-all`}
         />
-        <div>
-          <MdMenuOpen
-            size={34}
-            className={`duration-500 cursor-pointer ${
-              !open ? "rotate-180" : ""
-            }`}
-            onClick={() => setOpen(!open)}
-          />
-        </div>
+        <MdMenuOpen
+          size={30}
+          className={`cursor-pointer transition-transform duration-500 ${
+            !open ? "rotate-180" : ""
+          }`}
+          onClick={() => setOpen(!open)}
+        />
       </div>
 
-      {/* Body */}
-      <ul className="flex-1">
-        {menuItems.map((item, index) => (
-          <li
-            key={index}
-            className="px-3 py-2 my-2 hover:bg-blue-800 rounded-md duration-300 cursor-pointer flex gap-2 items-center relative group"
-          >
-            <div>{item.icons}</div>
-            <p
-              className={`${
-                !open ? "w-0 translate-x-24" : ""
-              } duration-500 overflow-hidden`}
-            >
-              {item.label}
-            </p>
+      {/* Menu */}
+      <ul className="flex-1 overflow-auto">
+        {menuItems.map((item, index) => {
+          const isActive =
+            item.path === "/"
+              ? location.pathname === "/"
+              : location.pathname.startsWith(item.path);
 
-            {/* tooltip when sidebar is collapsed */}
-            <p
-              className={`${
-                open ? "hidden" : ""
-              } absolute left-32 shadow-md rounded-md w-0 p-0 text-black bg-white duration-100 overflow-hidden group-hover:w-fit group-hover:p-2 group-hover:left-16`}
+          return (
+            <li
+              key={index}
+              onClick={() => navigate(item.path)}
+              className={`flex items-center gap-3 px-3 py-2 my-2 rounded-md cursor-pointer transition-all duration-300
+                ${isActive ? "bg-blue-800" : "bg-transparent hover:bg-blue-800"}
+                ${!open ? "justify-center" : ""}`}
             >
-              {item.label}
-            </p>
-          </li>
-        ))}
+              <div className={`${!open ? "mx-auto" : ""}`}>{item.icon}</div>
+              <p
+                className={`whitespace-nowrap transition-all duration-500 ${
+                  !open ? "opacity-0 translate-x-5" : "opacity-100"
+                }`}
+              >
+                {item.label}
+              </p>
+            </li>
+          );
+        })}
       </ul>
 
-      {/* footer */}
-      <div className="flex items-center gap-2 px-3 py-2">
-        <div>
-          <FaUserCircle size={30} />
-        </div>
+      {/* Footer */}
+      <div
+        className={`flex items-center gap-2 px-3 py-2 border-t border-blue-400 ${
+          !open ? "justify-center" : ""
+        }`}
+      >
+        <FaUserCircle size={30} />
         <div
-          className={`leading-5 ${
-            !open ? "w-0 translate-x-24" : ""
-          } duration-500 overflow-hidden`}
+          className={`transition-all duration-500 ${
+            !open ? "opacity-0 translate-x-5" : "opacity-100"
+          }`}
         >
           <p>XYZ</p>
-          <span className="text-xs">abc@gmail.com</span>
+          <span className="text-xs text-blue-200">abc@gmail.com</span>
         </div>
       </div>
     </nav>

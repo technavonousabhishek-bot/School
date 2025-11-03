@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "admissionNo": "ADM101",
+    "name": "Aarav Sharma",
+    "class": "10 - A",
+    "fatherName": "Rajesh Sharma",
+    "contact": "9876543210",
+    "age": 15,
+    "gender": "Male",
+    "address": "MG Road, Delhi"
+  },
+  {
+    "id": 2,
+    "admissionNo": "ADM102",
+    "name": "Diya Patel",
+    "class": "9 - B",
+    "fatherName": "Kunal Patel",
+    "contact": "9812345678",
+    "age": 14,
+    "gender": "Female",
+    "address": "Satellite, Ahmedabad"
+  },
+  {
+    "id": 3,
+    "admissionNo": "ADM103",
+    "name": "Rohan Mehta",
+    "class": "12 - A",
+    "fatherName": "Amit Mehta",
+    "contact": "9823098765",
+    "age": 17,
+    "gender": "Male",
+    "address": "Kothrud, Pune"
+  }
+]

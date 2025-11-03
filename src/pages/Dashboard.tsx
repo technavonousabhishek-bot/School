@@ -1,66 +1,78 @@
-import { useState } from "react";
-import { FaUserCircle, FaChalkboardTeacher, FaUserGraduate } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaChalkboardTeacher, FaUserGraduate } from "react-icons/fa";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { MdOutlineClass } from "react-icons/md";
 
 export default function Dashboard() {
-  const [profileOpen, setProfileOpen] = useState(false);
+  const navigate = useNavigate();
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [totalTeachers, setTotalTeachers] = useState(0);
+  const [totalClassrooms, setTotalClassrooms] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("/students.json");
+        setTotalStudents(res.ok ? (await res.json()).length : 0);
+      } catch {
+        setTotalStudents(0);
+      }
+
+      try {
+        const resT = await fetch("/teachers.json");
+        setTotalTeachers(resT.ok ? (await resT.json()).length : 0);
+      } catch {
+        setTotalTeachers(0);
+      }
+
+      try {
+        const resC = await fetch("/classrooms.json");
+        setTotalClassrooms(resC.ok ? (await resC.json()).length : 0);
+      } catch {
+        setTotalClassrooms(0);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const stats = [
     {
-      title: "Total Students",
-      value: "1064",
-      subtitle: "Active students this year",
-      icon: <FaUserGraduate className="text-blue-600 text-2xl" />,
-    },
-    {
-      title: "Teacher",
-      value: "32",
+      title: "Total Teachers",
+      value: totalTeachers.toString(),
       subtitle: "Active teaching staff",
       icon: <FaChalkboardTeacher className="text-green-600 text-2xl" />,
+      onClick: () => navigate("/teachers"),
     },
     {
-      title: "Classes",
-      value: "62",
-      subtitle: "Active Classes",
+      title: "Total Students",
+      value: totalStudents.toString(),
+      subtitle: "Active students this year",
+      icon: <FaUserGraduate className="text-blue-600 text-2xl" />,
+      onClick: () => navigate("/students"),
+    },
+    {
+      title: "Classrooms",
+      value: totalClassrooms.toString(),
+      subtitle: "Active academic classrooms",
       icon: <MdOutlineClass className="text-purple-600 text-2xl" />,
+      onClick: () => navigate("/classroom"),
     },
     {
       title: "Attendance",
       value: "912 / 1064",
-      subtitle: "Active students",
+      subtitle: "Active students present",
       icon: <BsFillPersonLinesFill className="text-orange-600 text-2xl" />,
+      onClick: () => navigate("/attendance"),
     },
   ];
 
   return (
     <main className="flex-1 p-6 bg-gray-50 min-h-screen">
-      {/* Profile button top-right */}
-      <div className="fixed top-4 right-4 z-50">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setProfileOpen((v) => !v)}
-            className="flex items-center focus:outline-none"
-            aria-expanded={profileOpen}
-            aria-label="User profile"
-          >
-            <FaUserCircle
-              size={profileOpen ? 56 : 30}
-              className="text-gray-700 transition-all duration-300"
-            />
-          </button>
-
-          <div className={`${profileOpen ? "block" : "hidden"}`}>
-            <div className="font-medium">XYZ</div>
-            <div className="text-sm text-gray-500">xyz@gmail.com</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Page Title */}
       <div className="mt-6">
         <h2 className="text-2xl font-bold">Dashboard</h2>
-        <p className="text-gray-600">Welcome to student management system</p>
+        <p className="text-gray-600">Welcome to the school management system</p>
       </div>
 
       {/* Stats Cards */}
@@ -68,7 +80,8 @@ export default function Dashboard() {
         {stats.map((item, index) => (
           <div
             key={index}
-            className="bg-white p-5 rounded-2xl shadow hover:shadow-md transition-all"
+            onClick={item.onClick}
+            className="bg-white p-5 rounded-2xl shadow hover:shadow-md transition-all cursor-pointer"
           >
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-gray-700 font-semibold">{item.title}</h3>

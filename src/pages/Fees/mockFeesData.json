@@ -1,0 +1,55 @@
+{
+  "Class 1": [
+    {
+      "id": 1,
+      "name": "Aarav Sharma",
+      "fatherName": "Rohit Sharma",
+      "contact": "9876543210",
+      "enrollmentNo": "C1-001",
+      "totalFee": 25000,
+      "paid": 20000,
+      "status": "Partial",
+      "lastPaymentDate": "2025-07-10",
+      "feeBreakdown": [
+        { "term": "Term 1", "amount": 10000, "status": "Paid" },
+        { "term": "Term 2", "amount": 10000, "status": "Paid" },
+        { "term": "Term 3", "amount": 5000, "status": "Unpaid" }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Isha Patel",
+      "fatherName": "Anil Patel",
+      "contact": "9876501234",
+      "enrollmentNo": "C1-002",
+      "totalFee": 25000,
+      "paid": 25000,
+      "status": "Paid",
+      "lastPaymentDate": "2025-06-20",
+      "feeBreakdown": [
+        { "term": "Term 1", "amount": 10000, "status": "Paid" },
+        { "term": "Term 2", "amount": 10000, "status": "Paid" },
+        { "term": "Term 3", "amount": 5000, "status": "Paid" }
+      ]
+    }
+  ],
+
+  "Class 2": [
+    {
+      "id": 3,
+      "name": "Rohan Verma",
+      "fatherName": "Suresh Verma",
+      "contact": "9812345678",
+      "enrollmentNo": "C2-001",
+      "totalFee": 26000,
+      "paid": 0,
+      "status": "Unpaid",
+      "lastPaymentDate": null,
+      "feeBreakdown": [
+        { "term": "Term 1", "amount": 10000, "status": "Unpaid" },
+        { "term": "Term 2", "amount": 10000, "status": "Unpaid" },
+        { "term": "Term 3", "amount": 6000, "status": "Unpaid" }
+      ]
+    }
+  ]
+}

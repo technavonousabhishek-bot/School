@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "name": "Sophia Wilson",
+    "email": "sophiewilson@gmail.com",
+    "class": "12 - A",
+    "subject": "Science",
+    "staffId": "STF001",
+    "department": "Science",
+    "contact": "8248 69086",
+    "address": "HSR layout, Bangalore",
+    "gender": "Female"
+  },
+  {
+    "id": 2,
+    "name": "James Jorden",
+    "email": "jamesjorden12@gmail.com",
+    "class": "9 - A",
+    "subject": "Economics",
+    "staffId": "STF002",
+    "department": "Economics",
+    "contact": "8248 69086",
+    "address": "Shanti Nagar, Indore",
+    "gender": "Male"
+  },
+  {
+    "id": 3,
+    "name": "Armaan Ali",
+    "email": "asyedarmaan345@gmail.com",
+    "class": "12 - B",
+    "subject": "Geography",
+    "staffId": "STF003",
+    "department": "Geography",
+    "contact": "8248 69086",
+    "address": "New Market, Bhopal",
+    "gender": "Male"
+  },
+  {
+    "id": 4,
+    "name": "Ravi sharma",
+    "email": "ravi1212@gmail.com",
+    "class": "9 - D",
+    "subject": "Economics",
+    "staffId": "STF004",
+    "department": "Mathematics",
+    "contact": "8248 69086",
+    "address": "Shanti Nagar, Indore",
+    "gender": "Male"
+  }
+]

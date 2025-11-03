@@ -1,0 +1,152 @@
+[
+  {
+    "id": 1,
+    "admissionNo": "ADM101",
+    "name": "Aarav Sharma",
+    "class": "10 - A",
+    "fatherName": "Rajesh Sharma",
+    "contact": "9876543210",
+    "age": 15,
+    "gender": "Male"
+  },
+  {
+    "id": 2,
+    "admissionNo": "ADM102",
+    "name": "Ishaan Patel",
+    "class": "10 - A",
+    "fatherName": "Ramesh Patel",
+    "contact": "9876501234",
+    "age": 15,
+    "gender": "Male"
+  },
+  {
+    "id": 3,
+    "admissionNo": "ADM103",
+    "name": "Saanvi Gupta",
+    "class": "10 - A",
+    "fatherName": "Anil Gupta",
+    "contact": "9876512345",
+    "age": 15,
+    "gender": "Female"
+  },
+  {
+    "id": 4,
+    "admissionNo": "ADM104",
+    "name": "Kavya Reddy",
+    "class": "10 - B",
+    "fatherName": "Venkatesh Reddy",
+    "contact": "9876523456",
+    "age": 15,
+    "gender": "Female"
+  },
+  {
+    "id": 5,
+    "admissionNo": "ADM105",
+    "name": "Vivaan Singh",
+    "class": "9 - A",
+    "fatherName": "Sukhdev Singh",
+    "contact": "9876534567",
+    "age": 14,
+    "gender": "Male"
+  },
+  {
+    "id": 6,
+    "admissionNo": "ADM106",
+    "name": "Ananya Joshi",
+    "class": "9 - A",
+    "fatherName": "Rohit Joshi",
+    "contact": "9876545678",
+    "age": 14,
+    "gender": "Female"
+  },
+  {
+    "id": 7,
+    "admissionNo": "ADM107",
+    "name": "Rohan Mehra",
+    "class": "11 - C",
+    "fatherName": "Pradeep Mehra",
+    "contact": "9876556789",
+    "age": 16,
+    "gender": "Male"
+  },
+  {
+    "id": 8,
+    "admissionNo": "ADM108",
+    "name": "Meera Nair",
+    "class": "11 - C",
+    "fatherName": "Suresh Nair",
+    "contact": "9876567890",
+    "age": 16,
+    "gender": "Female"
+  },
+  {
+    "id": 9,
+    "admissionNo": "ADM109",
+    "name": "Kabir Khan",
+    "class": "8 - B",
+    "fatherName": "Aamir Khan",
+    "contact": "9876578901",
+    "age": 13,
+    "gender": "Male"
+  },
+  {
+    "id": 10,
+    "admissionNo": "ADM110",
+    "name": "Nandini Rao",
+    "class": "8 - B",
+    "fatherName": "Sanjay Rao",
+    "contact": "9876589012",
+    "age": 13,
+    "gender": "Female"
+  },
+  {
+    "id": 11,
+    "admissionNo": "ADM111",
+    "name": "Arjun Verma",
+    "class": "10 - A",
+    "fatherName": "Manish Verma",
+    "contact": "9876590123",
+    "age": 15,
+    "gender": "Male"
+  },
+  {
+    "id": 12,
+    "admissionNo": "ADM112",
+    "name": "Tara Kapoor",
+    "class": "10 - A",
+    "fatherName": "Kamal Kapoor",
+    "contact": "9876591234",
+    "age": 15,
+    "gender": "Female"
+  },
+  {
+    "id": 13,
+    "admissionNo": "ADM113",
+    "name": "Yash Chauhan",
+    "class": "9 - B",
+    "fatherName": "Sanjiv Chauhan",
+    "contact": "9876592345",
+    "age": 14,
+    "gender": "Male"
+  },
+  {
+    "id": 14,
+    "admissionNo": "ADM114",
+    "name": "Aisha Sheikh",
+    "class": "9 - B",
+    "fatherName": "Farid Sheikh",
+    "contact": "9876593456",
+    "age": 14,
+    "gender": "Female"
+  },
+  {
+    "id": 15,
+    "admissionNo": "ADM115",
+    "name": "Devansh Kapoor",
+    "class": "10 - B",
+    "fatherName": "Rohit Kapoor",
+    "contact": "9876594567",
+    "age": 15,
+    "gender": "Male"
+  }
+]
