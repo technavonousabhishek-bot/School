@@ -129,7 +129,7 @@ export default function FeesDetailsModal({ student, onClose }: FeeDetailsModalPr
                 label
                 dataKey="value"
               >
-                {chartData.map((entry, index) => (
+                {chartData.map((_, index) => (
                   <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>

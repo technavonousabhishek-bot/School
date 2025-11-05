@@ -6,7 +6,7 @@ import { useState } from "react";
 export default function NoticeClassDetails() {
   const { className } = useParams<{ className: string }>();
   const navigate = useNavigate();
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [, setRefreshKey] = useState(0);
 
   if (!className) return null;
 

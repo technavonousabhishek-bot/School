@@ -43,6 +43,37 @@ export const students = [
   },
 ];
 
+// 🔹 Teachers list (mock)
+export const teachers = [
+  {
+    id: 1,
+    name: "Ms. Ananya Sharma",
+    designation: "Math Teacher",
+    subject: "Mathematics",
+    class: "Class 1A",
+    cno: "T-001",
+    attendance: 96,
+  },
+  {
+    id: 2,
+    name: "Mr. Vikram Rao",
+    designation: "Science Teacher",
+    subject: "Science",
+    class: "Class 1A",
+    cno: "T-002",
+    attendance: 89,
+  },
+  {
+    id: 3,
+    name: "Ms. Neha Gupta",
+    designation: "English Teacher",
+    subject: "English",
+    class: "Class 2A",
+    cno: "T-003",
+    attendance: 92,
+  },
+];
+
 // 🔹 Attendance records for charts (weekly, monthly, yearly)
 export const attendanceRecords = {
   "Aarav Singh": {

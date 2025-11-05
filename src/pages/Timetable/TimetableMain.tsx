@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 
-const TimetableMain = () => {
-  const [uploadedFiles, setUploadedFiles] = useState<any[]>(() => {
-    const saved = localStorage.getItem("timetableFiles");
-    return saved ? JSON.parse(saved) : [];
+const TimetableMain = ({ classId }: { classId?: number }) => {
+  // store files per-class under a single key (map classId -> files[])
+  const [uploadedFilesMap, setUploadedFilesMap] = useState<Record<string, any[]>>(() => {
+    const saved = localStorage.getItem("timetableFiles_v2");
+    return saved ? JSON.parse(saved) : {};
   });
+
+  const key = classId ? String(classId) : "global";
+  const uploadedFiles = uploadedFilesMap[key] ?? [];
 
   const [dragging, setDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
@@ -56,9 +60,9 @@ const TimetableMain = () => {
     }
 
     if (validFiles.length > 0) {
-      const updated = [...validFiles, ...uploadedFiles];
-      setUploadedFiles(updated);
-      localStorage.setItem("timetableFiles", JSON.stringify(updated));
+      const updatedMap = { ...uploadedFilesMap, [key]: [...validFiles, ...uploadedFiles] };
+      setUploadedFilesMap(updatedMap);
+      localStorage.setItem("timetableFiles_v2", JSON.stringify(updatedMap));
       setTitle("");
       setDescription("");
       setSelectedFiles(null);
@@ -75,8 +79,9 @@ const TimetableMain = () => {
   const handleDelete = (index: number) => {
     if (window.confirm("Are you sure you want to delete this file?")) {
       const updated = uploadedFiles.filter((_: any, i: number) => i !== index);
-      setUploadedFiles(updated);
-      localStorage.setItem("timetableFiles", JSON.stringify(updated));
+      const updatedMap = { ...uploadedFilesMap, [key]: updated };
+      setUploadedFilesMap(updatedMap);
+      localStorage.setItem("timetableFiles_v2", JSON.stringify(updatedMap));
     }
   };
 
@@ -89,7 +94,6 @@ const TimetableMain = () => {
 
   const handleUpdate = () => {
     if (editIndex === null) return;
-
     const updatedFiles = [...uploadedFiles];
     updatedFiles[editIndex] = {
       ...updatedFiles[editIndex],
@@ -97,9 +101,9 @@ const TimetableMain = () => {
       description,
       date: new Date().toLocaleString(),
     };
-
-    setUploadedFiles(updatedFiles);
-    localStorage.setItem("timetableFiles", JSON.stringify(updatedFiles));
+    const updatedMap = { ...uploadedFilesMap, [key]: updatedFiles };
+    setUploadedFilesMap(updatedMap);
+    localStorage.setItem("timetableFiles_v2", JSON.stringify(updatedMap));
     setEditIndex(null);
     setTitle("");
     setDescription("");

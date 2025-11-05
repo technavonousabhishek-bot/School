@@ -10,8 +10,8 @@ export default function Profile() {
 
   // 🧩 Mock user data (you can later fetch this from backend)
   const [user, setUser] = useState({
-    name: "Satish Sawant",
-    email: "satish@gmail.com",
+    name: "Annie besant school",
+    email: "abs@gmail.com",
     avatar: "https://i.pravatar.cc/150?img=7",
     password: "password123", // 🧩 For demo only
   });

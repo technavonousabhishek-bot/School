@@ -5,7 +5,7 @@ import { useState } from "react";
 
 export default function NoticeTeachers() {
   const navigate = useNavigate();
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [, setRefreshKey] = useState(0);
 
   const notices = getNoticesForAudience("teachers");
 

@@ -25,13 +25,13 @@ export default function AttendanceMain() {
           <div
             key={cls.id}
             onClick={() =>
-              navigate(`/attendance/${encodeURIComponent(cls.name)}`)
+              navigate(`/attendance/${encodeURIComponent(cls.name)}/students`)
             }
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ")
-                navigate(`/attendance/${encodeURIComponent(cls.name)}`);
+                navigate(`/attendance/${encodeURIComponent(cls.name)}/students`);
             }}
             className="bg-white shadow-md rounded-xl p-6 cursor-pointer hover:bg-blue-600 hover:text-white duration-300 border border-gray-200 flex flex-col items-center justify-center"
           >

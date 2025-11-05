@@ -1,11 +1,11 @@
 import { useNavigate, Link } from "react-router-dom";
 
 // ✅ Added `setIsLoggedIn` as a prop to change login state
-function LoginForm({ setIsLoggedIn }) {
+function LoginForm({ setIsLoggedIn }: { setIsLoggedIn: (val: boolean) => void }) {
   const navigate = useNavigate();
 
   // 🧩 Added: simple login handler (no authentication)
-  const handleLogin = (e) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
     // 🧩 Accept any username/password — just mark as logged in

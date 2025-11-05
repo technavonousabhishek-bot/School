@@ -1,4 +1,4 @@
-import { useState } from "react";
+// useState not required here
 // Recharts removed for a quick-fix; use simple HTML visuals instead
 
 interface Student {

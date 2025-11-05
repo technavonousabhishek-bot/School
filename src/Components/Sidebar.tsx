@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ImBooks } from "react-icons/im";
 import { MdMenuOpen, MdDashboard } from "react-icons/md";
-import { SiGoogleclassroom } from "react-icons/si";
 import {
   FaChalkboardTeacher,
   FaUserCircle,
@@ -11,13 +9,15 @@ import {
   FaUserCheck,
   FaBook,
   FaBusAlt,
+  FaFileAlt,
+  FaUserGraduate,
 } from "react-icons/fa";
 import { IoMegaphoneOutline } from "react-icons/io5";
 
 const menuItems = [
   { icon: <MdDashboard size={26} />, label: "Dashboard", path: "/" },
-  { icon: <ImBooks size={26} />, label: "Subjects", path: "/subjects" },
-  { icon: <SiGoogleclassroom size={26} />, label: "Classroom", path: "/classroom" },
+  { icon: <FaUserGraduate size={26} />, label: "Students", path: "/students" },
+  { icon: <FaChalkboardTeacher size={26} />, label: "Teachers", path: "/teachers" },
   { icon: <FaChalkboardTeacher size={26} />, label: "Classes", path: "/classes" },
   { icon: <FaUserCheck size={26} />, label: "Attendance", path: "/attendance" },
   { icon: <IoMegaphoneOutline size={26} />, label: "Notice", path: "/notice" },
@@ -26,6 +26,10 @@ const menuItems = [
   { icon: <FaBook size={26} />, label: "Library", path: "/library" },
   { icon: <MdDashboard size={26} />, label: "Timetable", path: "/timetable" },
   { icon: <FaBusAlt size={26} />, label: "Transport", path: "/transport" },
+
+  // 🧮 Combined module for Exams & Results (points to the Exams & Results home)
+ { icon: <FaFileAlt size={26} />, label: "Exams & Results", path: "/exams-results" },
+
 ];
 
 export default function Sidebar() {
@@ -84,21 +88,21 @@ export default function Sidebar() {
         })}
       </ul>
 
-      {/* Footer */}
-      <div
-        className={`flex items-center gap-2 px-3 py-2 border-t border-blue-400 ${
-          !open ? "justify-center" : ""
-        }`}
-      >
-        <FaUserCircle size={30} />
-        <div
-          className={`transition-all duration-500 ${
-            !open ? "opacity-0 translate-x-5" : "opacity-100"
-          }`}
+      {/* Footer: logout button */}
+      <div className={`px-3 py-2 border-t border-blue-400 ${!open ? "flex justify-center" : ""}`}>
+        <button
+          onClick={() => {
+            // clear any login persistence and reload to show login page
+            try { localStorage.removeItem("loggedIn"); } catch {}
+            window.location.href = "/login";
+          }}
+          className="w-full flex items-center gap-2 text-left rounded-md px-2 py-2 bg-red-600 text-white hover:bg-red-700 transition"
         >
-          <p>XYZ</p>
-          <span className="text-xs text-blue-200">abc@gmail.com</span>
-        </div>
+          <FaUserCircle size={26} className="text-white" />
+          <span className={`transition-all duration-300 ${!open ? "opacity-0 translate-x-5" : "opacity-100"}`}>
+            Logout
+          </span>
+        </button>
       </div>
     </nav>
   );

@@ -1,7 +1,7 @@
 // AddNotice.tsx
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { addNotice, classes, notices, updateNotice } from "./noticeData";
+import { addNotice, classes, updateNotice } from "./noticeData";
 import type { Notice } from "./noticeData";
 
 type LocationState = {
