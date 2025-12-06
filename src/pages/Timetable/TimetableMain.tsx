@@ -1,253 +1,284 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const TimetableMain = ({ classId }: { classId?: number }) => {
-  // store files per-class under a single key (map classId -> files[])
-  const [uploadedFilesMap, setUploadedFilesMap] = useState<Record<string, any[]>>(() => {
-    const saved = localStorage.getItem("timetableFiles_v2");
-    return saved ? JSON.parse(saved) : {};
-  });
+const API = "https://school-bos-backend.onrender.comschoolApp/timetables/";
+const BACKEND_ORIGIN = "http://127.0.0.1:8000";
 
-  const key = classId ? String(classId) : "global";
-  const uploadedFiles = uploadedFilesMap[key] ?? [];
+type TimetableFile = {
+  id: number | string;
+  title: string;
+  description: string;
+  file: string;
+  uploaded_by_name?: string;
+  uploaded_on?: string;
+};
 
-  const [dragging, setDragging] = useState(false);
+type Props = {
+  classId?: string | number;
+};
+
+const TimetableMain: React.FC<Props> = ({ classId }) => {
+  const [files, setFiles] = useState<TimetableFile[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [editItem, setEditItem] = useState<TimetableFile | null>(null);
 
-  // Convert File → Base64 string
-  const fileToBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  useEffect(() => {
+    loadTimetable();
+  }, []);
 
+  // ✔ Fetch all timetable files
+  const loadTimetable = async () => {
+    try {
+      const res = await axios.get(API);
+      setFiles(res.data);
+    } catch (err: any) {
+      console.error("Fetch error:", err?.response?.data ?? err?.message ?? err);
+    }
+  };
+
+  // ✔ Upload timetable to backend
   const handleFileUpload = async () => {
     if (!selectedFiles || selectedFiles.length === 0) {
-      alert("Please select at least one file.");
+      alert("Please select a file");
       return;
     }
-
     if (!title.trim()) {
-      alert("Please enter a title for the file.");
+      alert("Enter a title");
       return;
     }
+    // FileList supports indexed access in browsers; guard with null-check
+    const file = selectedFiles[0] ?? selectedFiles.item(0);
+    if (!file) {
+      alert("Please select a valid file");
+      return;
+    }
+    const formData = new FormData();
 
-    const validFiles: any[] = [];
-    const maxSize = 5 * 1024 * 1024; // 5MB limit
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("file", file);
 
-    for (const file of Array.from(selectedFiles)) {
-      if (file.size > maxSize) {
-        alert(`${file.name} is larger than 5MB and was skipped.`);
-        continue;
+    try {
+      // let axios set Content-Type (it will include the multipart boundary)
+      if (classId !== undefined && classId !== null) {
+        formData.append("class", String(classId));
       }
 
-      const base64 = await fileToBase64(file);
+      await axios.post(API + "create/", formData);
 
-      const newFile = {
-        name: file.name,
-        size: (file.size / 1024 / 1024).toFixed(2) + " MB",
-        type: file.type || "application/octet-stream",
-        title,
-        description,
-        date: new Date().toLocaleString(),
-        data: base64, // actual file content
-      };
-      validFiles.push(newFile);
-    }
-
-    if (validFiles.length > 0) {
-      const updatedMap = { ...uploadedFilesMap, [key]: [...validFiles, ...uploadedFiles] };
-      setUploadedFilesMap(updatedMap);
-      localStorage.setItem("timetableFiles_v2", JSON.stringify(updatedMap));
       setTitle("");
       setDescription("");
       setSelectedFiles(null);
-      alert("File uploaded successfully!");
+      await loadTimetable();
+      alert("Uploaded!");
+    } catch (err: any) {
+      console.error("Upload error:", err?.response?.data ?? err?.message ?? err);
+      if (err?.response?.data) {
+        // show backend validation errors to the user for quick debugging
+        alert("Upload failed: " + JSON.stringify(err.response.data));
+      } else {
+        alert("Upload failed. See console for details.");
+      }
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragging(false);
-    setSelectedFiles(e.dataTransfer.files);
-  };
+  // ✔ Delete timetable
+  const handleDelete = async (id: number | string) => {
+    if (!window.confirm("Delete this item?")) return;
 
-  const handleDelete = (index: number) => {
-    if (window.confirm("Are you sure you want to delete this file?")) {
-      const updated = uploadedFiles.filter((_: any, i: number) => i !== index);
-      const updatedMap = { ...uploadedFilesMap, [key]: updated };
-      setUploadedFilesMap(updatedMap);
-      localStorage.setItem("timetableFiles_v2", JSON.stringify(updatedMap));
+    try {
+      await axios.delete(`${API}${id}/delete/`);
+      loadTimetable();
+    } catch (err: any) {
+      console.error("Delete error:", err?.response?.data ?? err?.message ?? err);
     }
   };
 
-  const handleEdit = (index: number) => {
-    const file = uploadedFiles[index];
-    setTitle(file.title);
-    setDescription(file.description);
-    setEditIndex(index);
+  // ✔ Edit timetable (only title + description)
+  const handleUpdate = async () => {
+    if (!editItem) return;
+
+    try {
+      await axios.put(`${API}${editItem.id}/update/`, {
+        title,
+        description,
+      });
+
+      setEditItem(null);
+      setTitle("");
+      setDescription("");
+      await loadTimetable();
+    } catch (err) {
+      console.error("Update error:", err);
+    }
   };
 
-  const handleUpdate = () => {
-    if (editIndex === null) return;
-    const updatedFiles = [...uploadedFiles];
-    updatedFiles[editIndex] = {
-      ...updatedFiles[editIndex],
-      title,
-      description,
-      date: new Date().toLocaleString(),
-    };
-    const updatedMap = { ...uploadedFilesMap, [key]: updatedFiles };
-    setUploadedFilesMap(updatedMap);
-    localStorage.setItem("timetableFiles_v2", JSON.stringify(updatedMap));
-    setEditIndex(null);
-    setTitle("");
-    setDescription("");
+  // Helper: ensure file URLs point to backend so browser requests the actual file
+  const makeFileUrl = (filePath: string | undefined) => {
+    if (!filePath) return undefined;
+    // If serializer already returned an absolute URL, use it
+    if (/^https?:\/\//i.test(filePath)) return filePath;
+    // Otherwise prefix with backend origin (handles '/media/...' paths)
+    return `${BACKEND_ORIGIN}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
   };
 
-  // ✅ This ensures download works for any Base64 data
-  const handleDownload = (file: any) => {
-    const link = document.createElement("a");
-    link.href = file.data;
-    link.download = file.name;
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Download file via fetch and trigger browser download (works across dev origins)
+  const downloadFile = async (filePath: string | undefined) => {
+    if (!filePath) return;
+    const href = makeFileUrl(filePath);
+    try {
+      if (!href) return;
+      const resp = await fetch(href, { method: "GET", credentials: "include" });
+      if (!resp.ok) throw new Error(`Download failed: ${resp.status}`);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filePath.split("/").pop() || "file";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      // eslint-disable-next-line no-console
+      console.error("Download error:", err);
+      alert("Download failed. See console for details.");
+    }
   };
 
   return (
     <div className="p-6">
+
       <h1 className="text-2xl font-semibold mb-4">📅 Timetable Management</h1>
 
-      {/* Upload Section */}
+      {/* UPLOAD BOX UI SAME */}
       <div
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition ${
-          dragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
-        }`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={handleDrop}
+        className="border-2 border-dashed p-8 rounded-xl text-center"
       >
-        <p className="text-gray-700 mb-2">
-          Drag & drop files here, or{" "}
-          <label className="text-blue-600 cursor-pointer underline">
-            browse
-            <input
-              type="file"
-              multiple
-              onChange={(e) => setSelectedFiles(e.target.files)}
-              className="hidden"
-            />
-          </label>
-        </p>
-        <p className="text-sm text-gray-500">
-          Supports: PDF, Image, Excel, Sheets, etc. (Max 5MB each)
-        </p>
+        <label className="text-blue-600 underline cursor-pointer">
+          browse
+          <input
+            type="file"
+            className="hidden"
+            onChange={(e) => setSelectedFiles(e.target.files)}
+          />
+        </label>
 
         {selectedFiles && (
-          <div className="mt-4 text-gray-600">
-            {Array.from(selectedFiles).map((file, index) => (
-              <p key={index}>📄 {file.name}</p>
-            ))}
-          </div>
+          <p className="mt-3 text-gray-700">📄 {selectedFiles[0].name}</p>
         )}
       </div>
 
-      {/* Title + Description Inputs */}
+      {/* INPUTS */}
       <div className="mt-6 space-y-3">
         <input
-          type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter title for the timetable"
-          className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+          placeholder="Enter title"
+          className="w-full border p-3 rounded-lg"
         />
+
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter description (optional)"
-          rows={3}
-          className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+          placeholder="Enter description"
+          className="w-full border p-3 rounded-lg"
         />
-        {editIndex !== null ? (
+
+        {editItem ? (
           <button
             onClick={handleUpdate}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+            className="bg-green-600 text-white px-6 py-2 rounded-lg"
           >
-            Update Details
+            Update
           </button>
         ) : (
           <button
             onClick={handleFileUpload}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg"
           >
-            Upload File
+            Upload
           </button>
         )}
       </div>
 
-      {/* History Section */}
+      {/* HISTORY TABLE (UI SAME) */}
       <div className="mt-10 bg-white shadow rounded-xl p-6">
         <h2 className="text-lg font-semibold mb-4">📜 Upload History</h2>
-        {uploadedFiles.length === 0 ? (
-          <p className="text-gray-500">No files uploaded yet.</p>
-        ) : (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b">
-                <th className="p-2">Title</th>
-                <th className="p-2">File Name</th>
-                <th className="p-2">Type</th>
-                <th className="p-2">Size</th>
-                <th className="p-2">Description</th>
-                <th className="p-2">Uploaded On</th>
-                <th className="p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {uploadedFiles.map((file: any, index: number) => (
-                <tr key={index} className="border-b hover:bg-gray-50">
-                  <td className="p-2">{file.title}</td>
-                  <td
-                    className="p-2 text-blue-600 cursor-pointer hover:underline"
-                    onClick={() => handleDownload(file)}
+
+        <table className="w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="p-2">Title</th>
+              <th className="p-2">File</th>
+              <th className="p-2">Description</th>
+              <th className="p-2">Uploaded By</th>
+              <th className="p-2">Date</th>
+              <th className="p-2">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {files.map((file) => (
+              <tr key={String(file.id)} className="border-b">
+                <td className="p-2">{file.title}</td>
+                <td className="p-2">
+                  {file.file ? (
+                    (() => {
+                      const href = makeFileUrl(file.file);
+                      return (
+                        <a
+                          href={href}
+                          // prevent default navigation and trigger fetch-download
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            downloadFile(file.file);
+                          }}
+                          rel="noopener noreferrer"
+                          className="text-blue-600 cursor-pointer"
+                        >
+                          📎 {file.file.split("/").pop()}
+                        </a>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-gray-500">No file</span>
+                  )}
+                </td>
+                <td className="p-2">{file.description}</td>
+                <td className="p-2">{file.uploaded_by_name}</td>
+                <td className="p-2">{file.uploaded_on}</td>
+
+                <td className="p-2 flex gap-3">
+                  <button
+                    onClick={() => {
+                      setEditItem(file);
+                      setTitle(file.title);
+                      setDescription(file.description);
+                    }}
+                    className="text-yellow-600"
                   >
-                    📎 {file.name}
-                  </td>
-                  <td className="p-2">{file.type}</td>
-                  <td className="p-2">{file.size}</td>
-                  <td className="p-2">{file.description}</td>
-                  <td className="p-2">{file.date}</td>
-                  <td className="p-2 flex gap-2">
-                    <button
-                      onClick={() => handleEdit(index)}
-                      className="text-yellow-600 hover:text-yellow-800"
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(index)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      🗑 Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+                    ✏️ Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(file.id)}
+                    className="text-red-600"
+                  >
+                    🗑 Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
       </div>
     </div>
   );
 };
 
-export default TimetableMain;
+export default TimetableMain; 

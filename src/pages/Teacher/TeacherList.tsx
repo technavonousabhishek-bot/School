@@ -12,44 +12,178 @@ interface Teacher {
   id: number;
   staffId: string;
   name: string;
-  subject: string;
+  subject: string[];
+  classTeacherOf?: string;
+  isActive?: boolean;
+  languagePreference?: string;
+  classesHandled?: string;
+  updatedAt?: string;
   department: string;
+ // subjects?: string[];
   contact: string;
   gender: string;
   address: string;
   aadhaarNumber?: string;
   lastExperience?: string;
+
   joiningDate: string;
   documents?: DocumentFile[];
+  profilePicture?: { data: string; name?: string };
+  qualifications?: string;
+  specialization?: string;
 }
 
 export default function TeacherList() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDept, setSelectedDept] = useState("All Departments");
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const navigate = useNavigate();
 
+  const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.comAccount";
+
+  // Normalize teacher objects from backend/localStorage so UI can rely on consistent fields
+  const normalizeTeacher = (t: any): Teacher => {
+    return {
+      id: Number(t.id ?? t.pk ?? 0),
+      staffId: t.staffId ?? t.staff_id ?? t.staff ?? "",
+      name: (t.name ?? t.teacher_name ?? "").toString(),
+      // Normalize subject into an array of names
+      subject: (function () {
+        // backend may return subject as: [] of strings, [] of objects, a comma string, or a subject_display field
+        const raw = t.subject ?? t.subject_display ?? t.subject_display_raw ?? null;
+        if (!raw) {
+          // try other possibilities
+          if (Array.isArray(t.subject)) {
+            return t.subject.map((s: any) => (typeof s === "string" ? s : s?.name || String(s)));
+          }
+          if (typeof t.subject === "string" && t.subject.includes(",")) {
+            return t.subject.split(",").map((s: string) => s.trim()).filter(Boolean);
+          }
+          return [];
+        }
+        if (Array.isArray(raw)) return raw.map((s: any) => (typeof s === "string" ? s : s?.name || String(s)));
+        if (typeof raw === "string") return raw.split(",").map((s: string) => s.trim()).filter(Boolean);
+        return [];
+      })(),
+      department: t.department ?? t.specialization ?? "",
+      contact: t.contact ?? "",
+      gender: t.gender ?? "",
+      address: t.address ?? "",
+      aadhaarNumber: t.aadhaarNumber ?? t.aadhaar_number ?? undefined,
+      lastExperience: t.lastExperience ?? t.last_experience ?? undefined,
+      joiningDate: t.joiningDate ?? t.joining_date ?? "",
+      updatedAt: t.updatedAt ?? t.updated_at ?? undefined,
+      classTeacherOf: (((t.class_teacher_of && (t.class_teacher_of.name || t.class_teacher_of.class_name)) || t.class_teacher_of) ?? ""),
+      isActive: typeof t.is_active !== 'undefined' ? t.is_active : (typeof t.isActive !== 'undefined' ? t.isActive : true),
+      languagePreference: t.language_preference ?? t.languagePreference ?? undefined,
+      classesHandled: t.classes_handled ?? t.classesHandled ?? undefined,
+      documents: t.documents ?? [],
+      profilePicture: t.profilePicture ?? t.profile_picture ?? undefined,
+      qualifications: t.qualifications ?? t.qualification ?? undefined,
+      specialization: t.specialization ?? undefined,
+    };
+  };
+
   useEffect(() => {
-    const storedTeachers = localStorage.getItem("teachers");
-    if (storedTeachers) setTeachers(JSON.parse(storedTeachers));
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Try backend first
+        const res = await fetch(`${API_BASE}/teachers/`);
+        if (res.ok) {
+          const data = await res.json();
+          // backend might return array or paginated {results: []}
+          const raw = Array.isArray(data)
+            ? data
+            : (Array.isArray(data.results) ? data.results : []);
+          setTeachers(raw.map(normalizeTeacher));
+          setLoading(false);
+          return;
+        } else {
+          // log server error and fall back
+          console.warn("Teachers fetch returned non-ok status", res.status);
+        }
+      } catch (e) {
+        console.warn("Teachers fetch failed, falling back to localStorage", e);
+      }
+
+      // fallback to localStorage
+      try {
+        const storedTeachers = localStorage.getItem("teachers");
+        if (storedTeachers) {
+          const parsed = JSON.parse(storedTeachers);
+          if (Array.isArray(parsed)) setTeachers(parsed.map(normalizeTeacher));
+        }
+      } catch (e) {
+        console.warn("Failed reading teachers from localStorage", e);
+      }
+      setLoading(false);
+    })();
   }, []);
 
-  const deptOptions = ["All Departments", ...new Set(teachers.map((t) => t.department))];
+  const deptOptions = ["All Departments", ...Array.from(new Set(teachers.map((t) => t.department || "").filter(Boolean)))];
 
   const filteredTeachers = teachers.filter((teacher) => {
-    const matchesName = teacher.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const nameValue = (teacher.name || "").toString();
+    const matchesName = nameValue.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDept =
       selectedDept === "All Departments" || teacher.department === selectedDept;
     return matchesName && matchesDept;
   });
 
   const handleDelete = (id: number) => {
-    if (confirm("Are you sure you want to delete this teacher?")) {
+    if (!confirm("Are you sure you want to delete this teacher?")) return;
+
+    (async () => {
+      // try backend delete first
+      try {
+        // try conventional delete endpoints: with /delete/ and without
+        let res = await fetch(`${API_BASE}/teachers/${id}/delete/`, { method: "DELETE" });
+        if (!res.ok && res.status !== 204) {
+          res = await fetch(`${API_BASE}/teachers/${id}/`, { method: "DELETE" });
+        }
+        if (res.ok || res.status === 204) {
+          const updated = teachers.filter((t) => t.id !== id);
+          setTeachers(updated);
+          // update local cache too
+          localStorage.setItem("teachers", JSON.stringify(updated));
+          return;
+        }
+        console.warn("Delete returned non-ok", res.status);
+      } catch (e) {
+        console.warn("Delete request failed, falling back to localStorage", e);
+      }
+
+      // fallback: localStorage
       const updated = teachers.filter((t) => t.id !== id);
       setTeachers(updated);
       localStorage.setItem("teachers", JSON.stringify(updated));
+    })();
+  };
+
+  const refreshTeachers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/teachers/`);
+      if (res.ok) {
+        const data = await res.json();
+        const raw = Array.isArray(data)
+          ? data
+          : (Array.isArray(data.results) ? data.results : []);
+        setTeachers(raw.map(normalizeTeacher));
+        setLoading(false);
+        return;
+      }
+      setError(`Server returned ${res.status}`);
+    } catch (e:any) {
+      setError(String(e));
     }
+    setLoading(false);
   };
 
   const handleDownload = (file: DocumentFile) => {
@@ -69,6 +203,14 @@ export default function TeacherList() {
     }
   };
 
+  // image download helper
+  const handleImageDownload = (imageData: string, name?: string) => {
+    const link = document.createElement("a");
+    link.href = imageData;
+    link.download = name || "teacher-profile.jpg";
+    link.click();
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -77,12 +219,21 @@ export default function TeacherList() {
     <FaUserPlus className="text-blue-600" />
     Teacher List
   </h2>
-        <button
-          onClick={() => navigate("/add-teacher")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          + Add Teacher
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/add-teacher")}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            + Add Teacher
+          </button>
+          <button
+            onClick={() => refreshTeachers()}
+            className="px-3 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+            title="Refresh from server"
+          >
+            ⟳ Refresh
+          </button>
+        </div>
       </div>
 
       {/* Search + Filter */}
@@ -108,14 +259,21 @@ export default function TeacherList() {
       </div>
 
       {/* Table */}
+      {loading && (
+        <div className="text-center py-4 text-gray-600">Loading teachers...</div>
+      )}
+      {error && (
+        <div className="text-center py-2 text-red-600">Error: {error}</div>
+      )}
       <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
             <tr>
               <th className="px-6 py-3">Staff ID</th>
               <th className="px-6 py-3">Name</th>
-              <th className="px-6 py-3">Subject</th>
+              <th className="px-6 py-3">subject</th>
               <th className="px-6 py-3">Department</th>
+              <th className="px-6 py-3">Qualifications</th>
               <th className="px-6 py-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -130,8 +288,16 @@ export default function TeacherList() {
                   <td className="px-6 py-3 font-medium text-gray-800">
                     {teacher.name}
                   </td>
-                  <td className="px-6 py-3">{teacher.subject}</td>
-                  <td className="px-6 py-3">{teacher.department}</td>
+                  <td className="px-6 py-3">{
+                    Array.isArray(teacher.subject) && teacher.subject.length > 0
+                      ? teacher.subject.join(", ")
+                      : "-"
+                  }</td>
+                  <td className="px-6 py-3">
+                    <div className="font-medium text-gray-800">{teacher.department}</div>
+                    <div className="text-xs text-gray-500">{teacher.specialization || "-"}</div>
+                  </td>
+                  <td className="px-6 py-3">{teacher.qualifications || "-"}</td>
                   <td className="px-6 py-3 flex justify-center gap-3 text-lg">
                     <button
                       onClick={() => setSelectedTeacher(teacher)}
@@ -156,7 +322,7 @@ export default function TeacherList() {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="text-center text-gray-500 py-6 italic">
+                <td colSpan={6} className="text-center text-gray-500 py-6 italic">
                   No teachers found.
                 </td>
               </tr>
@@ -168,7 +334,7 @@ export default function TeacherList() {
       {/* Modal */}
       {selectedTeacher && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-xl relative">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-xl relative">
             <button
               onClick={() => setSelectedTeacher(null)}
               className="absolute top-3 right-3 text-gray-600 hover:text-black text-xl"
@@ -176,7 +342,20 @@ export default function TeacherList() {
               ✖
             </button>
 
-            <h2 className="text-2xl font-semibold mb-4 text-blue-700 border-b pb-2">
+            {/* Circular Image Added */}
+            {selectedTeacher.profilePicture?.data && (
+              <div className="flex justify-center mb-4">
+                <img
+                  src={selectedTeacher.profilePicture.data}
+                  alt="Teacher"
+                  className="w-28 h-28 rounded-full object-cover border-4 border-blue-500 shadow-md cursor-pointer"
+                  onClick={() => handleImageDownload(selectedTeacher.profilePicture!.data, selectedTeacher.name)}
+                  title="Click to Download Image"
+                />
+              </div>
+            )}
+
+            <h2 className="text-2xl font-semibold mb-4 text-blue-700 border-b pb-2 text-center">
               {selectedTeacher.name}'s Details
             </h2>
 
@@ -185,10 +364,31 @@ export default function TeacherList() {
                 <strong>Staff ID:</strong> {selectedTeacher.staffId}
               </p>
               <p>
-                <strong>Subject:</strong> {selectedTeacher.subject}
+                <strong>Class Teacher Of:</strong> {selectedTeacher.classTeacherOf || "-"}
+              </p>
+              <p>
+                <strong>Active:</strong> {selectedTeacher.isActive ? "Yes" : "No"}
+              </p>
+              <p>
+                <strong>subject:</strong>{" "}
+                {(selectedTeacher.subject && selectedTeacher.subject.length > 0)
+                  ? selectedTeacher.subject.join(", ")
+                  : "-"}
+              </p>
+              <p>
+                <strong>Classes Handled:</strong> {selectedTeacher.classesHandled || "-"}
+              </p>
+              <p>
+                <strong>Language:</strong> {selectedTeacher.languagePreference || "-"}
               </p>
               <p>
                 <strong>Department:</strong> {selectedTeacher.department}
+              </p>
+              <p>
+                <strong>Specialization:</strong> {selectedTeacher.specialization || "N/A"}
+              </p>
+              <p>
+                <strong>Qualifications:</strong> {selectedTeacher.qualifications || "N/A"}
               </p>
               <p>
                 <strong>Contact:</strong> {selectedTeacher.contact}
@@ -198,6 +398,9 @@ export default function TeacherList() {
               </p>
               <p>
                 <strong>Joining Date:</strong> {selectedTeacher.joiningDate}
+              </p>
+              <p>
+                <strong>Updated At:</strong> {selectedTeacher.updatedAt || "-"}
               </p>
               <p>
                 <strong>Last Experience:</strong>{" "}
@@ -211,13 +414,37 @@ export default function TeacherList() {
                 <strong>Address:</strong> {selectedTeacher.address}
               </p>
 
-              {selectedTeacher.documents && selectedTeacher.documents.length > 0 && (
-                <div className="col-span-2 mt-4">
-                  <h3 className="font-semibold text-lg mb-3 text-gray-800">
-                    📎 Uploaded Documents
-                  </h3>
-                  <div className="space-y-2">
-                    {selectedTeacher.documents.map((doc, index) => (
+              <div className="col-span-2 mt-4">
+                <h3 className="font-semibold text-lg mb-3 text-gray-800">📎 Uploaded Documents</h3>
+                <div className="space-y-2">
+                  {/* If backend exposes aadhaar_doc or experience_doc as URLs, show them */}
+                  {Array.isArray(selectedTeacher.documents) && selectedTeacher.documents.length > 0 && (
+                    <>
+                      {selectedTeacher.documents.map((doc, idx) => (
+                        <div key={idx} className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-lg">
+                          <span className="truncate"><strong>{doc.title}:</strong> {doc.name}</span>
+                          <button onClick={() => handleDownload(doc)} className="text-blue-600 hover:text-blue-800 font-medium">⬇ Download</button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {/* Profile picture exposed as a downloadable document */}
+                  {selectedTeacher.profilePicture?.data && (
+                    <div className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-lg">
+                      <span className="truncate">
+                        <strong>Profile Picture:</strong> {selectedTeacher.profilePicture.name || "profile.jpg"}
+                      </span>
+                      <button
+                        onClick={() => handleImageDownload(selectedTeacher.profilePicture!.data, selectedTeacher.profilePicture!.name || selectedTeacher.name)}
+                        className="text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        ⬇ Download
+                      </button>
+                    </div>
+                  )}
+
+                  {selectedTeacher.documents && selectedTeacher.documents.length > 0 ? (
+                    selectedTeacher.documents.map((doc, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-lg"
@@ -232,10 +459,12 @@ export default function TeacherList() {
                           ⬇ Download
                         </button>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-500 italic bg-gray-50 px-4 py-2 rounded-lg">No documents uploaded.</div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

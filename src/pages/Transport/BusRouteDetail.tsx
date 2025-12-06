@@ -1,5 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import axios from "axios";
+
+const API_BASE = "https://school-bos-backend.onrender.comschoolApp/";
 
 type Stop = {
   id: string;
@@ -28,17 +31,61 @@ type Bus = {
 const LS_KEY = "transport_buses_v5";
 
 export default function BusRouteDetails() {
-  const { busId } = useParams();
+  const params = useParams();
+  // accept either `busId` or `id` depending on route setup
+  const busId = (params as any).busId ?? (params as any).id;
   const navigate = useNavigate();
   const [bus, setBus] = useState<Bus | null>(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw) {
-      const all: Bus[] = JSON.parse(raw);
-      const found = all.find((b) => b.id === busId );
-      setBus(found ?? null);
-    }
+    if (!busId) return;
+
+    const url = `${API_BASE}buses/${busId}/`;
+    // debug: log param and URL so we can confirm a request will be made
+    // eslint-disable-next-line no-console
+    console.debug("BusRouteDetail: fetching", { busId, url });
+
+    (async () => {
+      try {
+        const res = await axios.get(url);
+        const b = res.data;
+        const mapped: Bus = {
+          id: String(b.id),
+          busNumber: b.busNumber ?? "",
+          driverName: b.driverName ?? "",
+          driverPhone: b.driverPhone ?? "",
+          capacity: typeof b.capacity === "number" ? b.capacity : Number(b.capacity) || 0,
+          status: b.status ?? "active",
+          route: {
+            start: b.start ?? (b.route?.start ?? ""),
+            startDeparture: b.startDeparture ?? (b.route?.startDeparture ?? ""),
+            stops: b.stops ?? (b.route?.stops ?? []),
+            end: b.end ?? (b.route?.end ?? ""),
+            endArrival: b.endArrival ?? (b.route?.endArrival ?? ""),
+          },
+          addedDate: b.addedDate ?? b.added_date ?? "",
+        };
+        setBus(mapped);
+      } catch (err: any) {
+        // network or CORS error will be visible in browser console; log details
+        // eslint-disable-next-line no-console
+        console.error("BusRouteDetail: failed to fetch", { url, error: err?.message ?? err, response: err?.response });
+
+        // fallback to localStorage for offline/debugging
+        const raw = localStorage.getItem(LS_KEY);
+        if (raw) {
+          try {
+            const all: Bus[] = JSON.parse(raw);
+            const found = all.find((b) => b.id === busId );
+            setBus(found ?? null);
+          } catch (e) {
+            setBus(null);
+          }
+        } else {
+          setBus(null);
+        }
+      }
+    })();
   }, [busId]);
 
   if (!bus) {

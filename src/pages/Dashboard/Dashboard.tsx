@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, type ReactNode } from "react";
 import { FaChalkboardTeacher, FaUserGraduate } from "react-icons/fa";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { MdOutlineClass } from "react-icons/md";
-import { type ReactNode } from "react";
+// note: `useEffect` used to ensure dashboard is reachable without login
 
 // Cards
 import StudentsCard from "./StudentsCard";
@@ -22,6 +23,14 @@ type StatItem = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // If no user role is present (no login), set a harmless default so
+    // routes or components that check for `userRole` do not redirect.
+    if (!localStorage.getItem("userRole")) {
+      localStorage.setItem("userRole", "guest");
+    }
+  }, []);
 
   const stats: StatItem[] = [
     {

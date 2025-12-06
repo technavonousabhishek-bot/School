@@ -1,41 +1,46 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from "../../api/notices";
 
 interface Book {
   id: number;
   title: string;
   author: string;
   category: string;
-  totalCopies: number;
-  availableCopies: number;
+  // accept backend naming
+  totalCopies?: number;
+  availableCopies?: number;
+  quantity?: number;
+  available_copies?: number;
 }
 
 interface Student {
   id: number;
   name: string;
-  className: string;
+  className?: string;
+  class?: string;
+  section?: string;
 }
 
 interface IssuedBook {
   id: number;
-  studentId: number;
-  bookId: number;
-  issueDate: string;
-  dueDate: string;
-  status: "Issued" | "Returned";
+  book: number;
+  book_title?: string;
+  issued_to: number;
+  issued_user?: string;
+  issue_date: string;
+  due_date: string;
+  return_date?: string | null;
+  is_returned?: boolean;
 }
 
 export default function IssueBook() {
   const navigate = useNavigate();
 
   // Mock student data (can later come from backend)
-  const mockStudents: Student[] = [
-    { id: 1, name: "Aarav Mehta", className: "10A" },
-    { id: 2, name: "Priya Sharma", className: "9B" },
-    { id: 3, name: "Rohan Patel", className: "8A" },
-  ];
-
-  const [students] = useState<Student[]>(mockStudents);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<{ id: number; class_name: string; section?: string }[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<number | "">("");
   const [books, setBooks] = useState<Book[]>([]);
   const [issuedBooks, setIssuedBooks] = useState<IssuedBook[]>([]);
 
@@ -43,12 +48,45 @@ export default function IssueBook() {
   const [selectedStudentId, setSelectedStudentId] = useState<number | "">("");
   const [dueDate, setDueDate] = useState("");
 
-  // Load data from localStorage
+  // Load data from backend
   useEffect(() => {
-    const storedBooks = localStorage.getItem("books");
-    const storedIssued = localStorage.getItem("issuedBooks");
-    if (storedBooks) setBooks(JSON.parse(storedBooks));
-    if (storedIssued) setIssuedBooks(JSON.parse(storedIssued));
+    // fetch issued books
+    const fetchIssued = async () => {
+      try {
+        const r = await fetch(API_BASE + 'issued/');
+        if (!r.ok) throw new Error(await r.text());
+        const data = await r.json();
+        setIssuedBooks(data);
+      } catch (err) {
+        console.warn('Could not load issued books:', err);
+      }
+    };
+
+    const fetchBooks = async () => {
+      try {
+        const r = await fetch(API_BASE + 'books/');
+        if (!r.ok) throw new Error(await r.text());
+        const data = await r.json();
+        setBooks(data);
+      } catch (err) {
+        console.warn('Could not load books:', err);
+      }
+    };
+
+    const fetchClasses = async () => {
+      try {
+        const r = await fetch(API_BASE + 'classes/');
+        if (!r.ok) throw new Error(await r.text());
+        const data = await r.json();
+        setClasses(data);
+      } catch (err) {
+        console.warn('Could not load classes:', err);
+      }
+    };
+
+    fetchIssued();
+    fetchBooks();
+    fetchClasses();
   }, []);
 
   // Issue book handler
@@ -64,17 +102,15 @@ export default function IssueBook() {
       return;
     }
 
-    if (selectedBook.availableCopies <= 0) {
+    const avail = (selectedBook.availableCopies ?? selectedBook.available_copies ?? 0);
+    if (avail <= 0) {
       alert("❌ This book is not available right now!");
       return;
     }
 
-    // Check if student already has same book issued and not returned
+    // Check if student already has same book issued and not returned (backend records)
     const alreadyIssued = issuedBooks.find(
-      (ib) =>
-        ib.studentId === selectedStudentId &&
-        ib.bookId === selectedBookId &&
-        ib.status === "Issued"
+      (ib) => ib.issued_to === Number(selectedStudentId) && ib.book === Number(selectedBookId) && !ib.is_returned
     );
 
     if (alreadyIssued) {
@@ -82,46 +118,87 @@ export default function IssueBook() {
       return;
     }
 
-    const newIssue: IssuedBook = {
-      id: Date.now(),
-      studentId: Number(selectedStudentId),
-      bookId: Number(selectedBookId),
-      issueDate: new Date().toISOString().split("T")[0],
-      dueDate,
-      status: "Issued",
+    // call backend to issue
+    const payload = {
+      book: Number(selectedBookId),
+      issued_to: Number(selectedStudentId),
+      issue_date: new Date().toISOString().split("T")[0],
+      due_date: dueDate,
     };
 
-    // Update localStorage
-    const updatedIssuedBooks = [...issuedBooks, newIssue];
-    const updatedBooks = books.map((b) =>
-      b.id === selectedBookId
-        ? { ...b, availableCopies: b.availableCopies - 1 }
-        : b
-    );
+    fetch(API_BASE + "issue/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      })
+      .then(async (data) => {
+        // refresh issued list and books from backend to keep consistent
+        try {
+          const issuedRes = await fetch(API_BASE + 'issued/');
+          if (issuedRes.ok) setIssuedBooks(await issuedRes.json());
+        } catch (e) {
+          console.warn('Could not refresh issued list:', e);
+        }
+        try {
+          const booksRes = await fetch(API_BASE + 'books/');
+          if (booksRes.ok) setBooks(await booksRes.json());
+        } catch (e) {
+          console.warn('Could not refresh books list:', e);
+        }
 
-    setIssuedBooks(updatedIssuedBooks);
-    setBooks(updatedBooks);
-
-    localStorage.setItem("issuedBooks", JSON.stringify(updatedIssuedBooks));
-    localStorage.setItem("books", JSON.stringify(updatedBooks));
-
-    // Sync update across tabs/pages
-    window.dispatchEvent(new Event("storage"));
-
-    alert("✅ Book issued successfully!");
-    navigate("/library");
+        alert('✅ Book issued successfully!');
+        navigate('/library');
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Failed to issue book: " + err.message);
+      });
   };
+
+  // When class selection changes, fetch students for that class
+  useEffect(() => {
+    if (!selectedClassId) {
+      setStudents([]);
+      return;
+    }
+    fetch(API_BASE + `class/${selectedClassId}/students/`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      })
+      .then((data) => setStudents(data))
+      .catch((err) => console.warn("Could not load students:", err));
+  }, [selectedClassId]);
 
   return (
     <main className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-blue-600 mb-6">📘 Issue Book</h1>
 
       <div className="bg-white p-6 rounded-lg shadow-md max-w-xl mx-auto space-y-5">
+        {/* Class Selector */}
+        <div>
+          <label className="block font-medium mb-2 text-gray-700">Select Class:</label>
+          <select
+            value={selectedClassId}
+            onChange={(e) => setSelectedClassId(e.target.value ? Number(e.target.value) : "")}
+            className="border rounded-md w-full p-2 outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="">-- Choose Class --</option>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.class_name} {c.section ? `- ${c.section}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Student Selector */}
         <div>
-          <label className="block font-medium mb-2 text-gray-700">
-            Select Student:
-          </label>
+          <label className="block font-medium mb-2 text-gray-700">Select Student:</label>
           <select
             value={selectedStudentId}
             onChange={(e) => setSelectedStudentId(Number(e.target.value))}
@@ -130,7 +207,7 @@ export default function IssueBook() {
             <option value="">-- Choose Student --</option>
             {students.map((student) => (
               <option key={student.id} value={student.id}>
-                {student.name} ({student.className})
+                {student.name} ({student.class ?? student.className ?? student.section ?? ""})
               </option>
             ))}
           </select>
@@ -149,9 +226,9 @@ export default function IssueBook() {
             <option value="">-- Choose Book --</option>
             {books.length > 0 ? (
               books.map((book) => (
-                <option key={book.id} value={book.id}>
-                  {book.title} ({book.availableCopies} available)
-                </option>
+                  <option key={book.id} value={book.id}>
+                    {book.title} ({(book.availableCopies ?? book.available_copies ?? 0)} available)
+                  </option>
               ))
             ) : (
               <option disabled>No books available</option>

@@ -1,4 +1,3 @@
-// src/pages/ExamsResults/ExamsResultsHome.tsx
 import { useNavigate } from "react-router-dom";
 import { FaFileAlt, FaChartBar } from "react-icons/fa";
 
@@ -18,9 +17,7 @@ export default function ExamsResultsHome() {
           className="bg-white shadow-md rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:shadow-xl hover:scale-105 transition-transform duration-300"
         >
           <FaFileAlt size={60} className="text-blue-600 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Manage Exams
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-800">Manage Exams</h2>
           <p className="text-gray-500 mt-2 text-center">
             Create, update, and view exam schedules.
           </p>
@@ -32,9 +29,7 @@ export default function ExamsResultsHome() {
           className="bg-white shadow-md rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:shadow-xl hover:scale-105 transition-transform duration-300"
         >
           <FaChartBar size={60} className="text-green-600 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Manage Results
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-800">Manage Results</h2>
           <p className="text-gray-500 mt-2 text-center">
             Enter, view, and update student results.
           </p>
@@ -43,4 +38,3 @@ export default function ExamsResultsHome() {
     </div>
   );
 }
-

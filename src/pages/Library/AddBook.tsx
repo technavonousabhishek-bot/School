@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { API_BASE } from "../../api/notices";
 
 type Book = {
   id: number;
   title: string;
   author: string;
   category: string;
-  totalCopies: number;
-  availableCopies: number;
+  // backend uses `quantity` and `available_copies`; keep old keys for compatibility
+  totalCopies?: number;
+  availableCopies?: number;
+  quantity?: number;
+  available_copies?: number;
 };
 
 export default function AddBook() {
@@ -28,19 +32,45 @@ export default function AddBook() {
       alert("Please fill all fields");
       return;
     }
-
-    const book: Book = {
-      id: Date.now(),
+    // Prepare payload for backend
+    const payload = {
       title: newBook.title,
       author: newBook.author,
       category: newBook.category,
-      totalCopies: parseInt(newBook.totalCopies),
-      availableCopies: parseInt(newBook.totalCopies),
+      isbn: String(Date.now()), // simple unique isbn placeholder
+      quantity: parseInt(newBook.totalCopies, 10),
+      available_copies: parseInt(newBook.totalCopies, 10),
     };
 
-    setBooks([...books, book]);
-    setNewBook({ title: "", author: "", category: "", totalCopies: "" });
+    fetch(API_BASE + "books/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      })
+      .then((created) => {
+        setBooks((s) => [created, ...s]);
+        setNewBook({ title: "", author: "", category: "", totalCopies: "" });
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Failed to add book: " + err.message);
+      });
   };
+
+  useEffect(() => {
+    // load books from backend
+    fetch(API_BASE + "books/")
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      })
+      .then((data) => setBooks(data))
+      .catch((err) => console.warn("Could not load books:", err));
+  }, []);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -128,7 +158,7 @@ export default function AddBook() {
                   {book.title} — {book.author}
                 </span>
                 <span className="text-gray-500">
-                  {book.availableCopies}/{book.totalCopies}
+                  {book.availableCopies ?? book.available_copies ?? 0}/{book.totalCopies ?? book.quantity ?? 0}
                 </span>
               </li>
             ))}

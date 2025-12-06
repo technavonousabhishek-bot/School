@@ -150,8 +150,11 @@ export default function ClassesList() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredClasses.length > 0 ? (
-          filteredClasses.map((cls, idx) => (
+          {filteredClasses.length > 0 ? (
+          filteredClasses.map((cls, idx) => {
+            const raw = String(cls.name || "").trim();
+            const displayName = /^\d+$/.test(raw) ? `Class ${raw}` : raw || "Unnamed";
+            return (
             <div
               key={idx}
               role="button"
@@ -164,7 +167,7 @@ export default function ClassesList() {
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-gray-700 font-semibold text-lg">
-                  {cls.name}
+                  {displayName}
                 </h3>
                 <span className="text-sm text-gray-500">
                   Section {cls.section}
@@ -200,7 +203,8 @@ export default function ClassesList() {
                 <div />
               </div>
             </div>
-          ))
+            );
+          })
         ) : (
           <div className="col-span-full text-center text-gray-500 py-6 italic">
             No classes found.

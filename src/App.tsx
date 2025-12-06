@@ -5,13 +5,16 @@ import { useState } from "react";
 // 📦 Core components
 import Sidebar from "./Components/Sidebar";
 
+
 // 🏠 Main pages
 import Dashboard from "./pages/Dashboard/Dashboard";
+import TeacherDasboard from "./pages/Dashboard/TeacherDasboard";
 
 
 // 🏫 Classes module imports
 import ClassesDashboard from "./pages/classes/ClassesDashboard";
 import ClassDetails from "./pages/classes/ClassDetails";
+import AddEditClass from "./pages/classes/AddClass";
 
 // 💰 Fees module imports
 import FeesMain from "./pages/Fees/FeesMain";
@@ -56,31 +59,30 @@ import TransportMain from "./pages/Transport/TransportMain";
 import TimetableMain from "./pages/Timetable/TimetableMain";
 
 // 🧮 Exam module
-import ManageExams from "./pages/ManageExams/ManageExams";
-import ExamDetails from "./pages/ManageExams/ExamDetails";
-import ClassExams from "./pages/ManageExams/ClassExams";
-import ExamTypePage from "./pages/ManageExams/ExamTypePage";
+import ManageExams from "./pages/ExamsResults/ManageExams";
+
 import { ExamStoreProvider } from "./context/ExamStoreContext";
 
 // 🧾 Results module
-import ManageResults from "./pages/Results/ManageResults";
-import ResultDetails from "./pages/Results/ResultDetails";
-import ManageResultsLanding from "./pages/Results/ManageResultsLanding";
-import ClassResults from "./pages/Results/ClassResults";
-import ResultTypePage from "./pages/Results/ResultTypePage";
-import ClassResultsActions from "./pages/Results/ClassResultsActions";
-import ViewResultsPage from "./pages/Results/ViewResultsPage";
+
 
 // 📘 Exams & Results Home Page (NEW)
-import ExamsResultsHome from "./pages/ExamsResults/ExamsResultsHome";
+
 import AddStudent from "./pages/Student/AddStudent";
 import StudentList from "./pages/Student/StudentList";
 import AddTeacher from "./pages/Teacher/AddTeacher";
 import TeacherList from "./pages/Teacher/TeacherList";
+import ExamsResultsHome from "./pages/ExamsResults/ExamsResultsHome";
+import ManageResults from "./pages/ExamsResults/ManageResults";
 
 function App() {
   // 🧩 Simple login state (dummy auth)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // read role/name/email from localStorage to pass into Sidebar
+  const userRole = typeof window !== "undefined" ? localStorage.getItem("userRole") || "admin" : "admin";
+  const userName = typeof window !== "undefined" ? localStorage.getItem("userName") || "" : "";
+  const userEmail = typeof window !== "undefined" ? localStorage.getItem("userEmail") || "" : "";
 
   return (
     <Router>
@@ -99,7 +101,8 @@ function App() {
               {
                 <ExamStoreProvider>
                   <div className="flex h-screen overflow-hidden bg-gray-50">
-                    <Sidebar />
+                    {/* global sidebar (TeacherSidebar was removed) */}
+                    <Sidebar userRole={userRole} userName={userName} userEmail={userEmail} />
 
                     <div className="flex-1 overflow-auto">
                       <Routes>
@@ -110,6 +113,9 @@ function App() {
 
                     {/* 🏫 Classes */}
                     <Route path="/classes" element={<ClassesDashboard />} />
+                    <Route path="/add-class" element={<AddEditClass />} />
+                    <Route path="/edit-class/:id" element={<AddEditClass />} />
+                    <Route path="/view-class/:id" element={<ClassDetails />} />
                     <Route path="/classes/:id" element={<ClassDetails />} />
 
                     {/* 📘 Homework */}
@@ -159,22 +165,7 @@ function App() {
                     <Route path="/timetable" element={<TimetableMain />} />
 
                     {/* 🧮 Exams & Results Section */}
-                    <Route path="/exams-results" element={<ExamsResultsHome />} />
-
-                    {/* 📘 Manage Exams */}
-                    <Route path="/manage-exams" element={<ManageExams />} />
-                    <Route path="/manage-exams/class/:classId" element={<ClassExams />} />
-                    <Route path="/manage-exams/class/:classId/:examType" element={<ExamTypePage />} />
-                    <Route path="/manage-exams/:examId" element={<ExamDetails />} />
-
-                    {/* 📊 Manage Results */}
-                    <Route path="/manage-results" element={<ManageResultsLanding />} />
-                    <Route path="/manage-results/type/:examType" element={<ClassResults />} />
-                                    <Route path="/manage-results/class/:classId/:examType/actions" element={<ClassResultsActions />} />
-                                    <Route path="/manage-results/class/:classId/:examType/add" element={<ResultTypePage />} />
-                                    <Route path="/manage-results/class/:classId/:examType/view" element={<ViewResultsPage />} />
-                    <Route path="/manage-results/list" element={<ManageResults />} />
-                    <Route path="/manage-results/:resultId" element={<ResultDetails />} />
+                   
 
 
  {/* Student */}
@@ -189,6 +180,21 @@ function App() {
                     <Route path="/edit-teacher/:id" element={<AddTeacher />} />
                     <Route path="/teachers" element={<TeacherList />} />
 
+                    {/* exams and result routes */}
+
+               <Route path="/exams-results" element={<ExamsResultsHome />} />
+                    <Route path="/manage-exams" element={<ManageExams />} />
+                    <Route path="/manage-results" element={<ManageResults />} />
+
+
+
+
+    {/*  Teacher dashboard */ }
+
+                         <Route path="/teacher" element={<TeacherDasboard />} />
+
+
+           
                       </Routes>
                     </div>
                   </div>

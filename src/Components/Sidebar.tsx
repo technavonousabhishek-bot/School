@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { ImBooks } from "react-icons/im";
 import { MdMenuOpen, MdDashboard } from "react-icons/md";
+import { SiGoogleclassroom } from "react-icons/si";
 import {
   FaChalkboardTeacher,
   FaUserCircle,
@@ -9,33 +11,32 @@ import {
   FaUserCheck,
   FaBook,
   FaBusAlt,
-  FaFileAlt,
   FaUserGraduate,
 } from "react-icons/fa";
 import { IoMegaphoneOutline } from "react-icons/io5";
 
-const menuItems = [
-  { icon: <MdDashboard size={26} />, label: "Dashboard", path: "/" },
-  { icon: <FaUserGraduate size={26} />, label: "Students", path: "/students" },
-  { icon: <FaChalkboardTeacher size={26} />, label: "Teachers", path: "/teachers" },
-  { icon: <FaChalkboardTeacher size={26} />, label: "Classes", path: "/classes" },
-  { icon: <FaUserCheck size={26} />, label: "Attendance", path: "/attendance" },
-  { icon: <IoMegaphoneOutline size={26} />, label: "Notice", path: "/notice" },
-  { icon: <FaMoneyBillWave size={26} />, label: "Fees", path: "/fees" },
-  { icon: <FaBookOpen size={26} />, label: "Homework", path: "/homework" },
-  { icon: <FaBook size={26} />, label: "Library", path: "/library" },
-  { icon: <MdDashboard size={26} />, label: "Timetable", path: "/timetable" },
-  { icon: <FaBusAlt size={26} />, label: "Transport", path: "/transport" },
-
-  // 🧮 Combined module for Exams & Results (points to the Exams & Results home)
- { icon: <FaFileAlt size={26} />, label: "Exams & Results", path: "/exams-results" },
-
+// ✅ All menu items with roles
+const allMenuItems = [
+  { icon: <MdDashboard size={26} />, label: "Dashboard", path: "/", roles: ["admin"] },
+  { icon: <FaUserGraduate size={26} />, label: "Students", path: "/students", roles: ["admin", "teacher"] },
+  { icon: <FaChalkboardTeacher size={26} />, label: "Teachers", path: "/teachers", roles: ["admin"] },
+  { icon: <FaChalkboardTeacher size={26} />, label: "Classes", path: "/classes", roles: ["admin", "teacher"] },
+  { icon: <FaUserCheck size={26} />, label: "Attendance", path: "/attendance", roles: ["admin", "teacher"] },
+  { icon: <IoMegaphoneOutline size={26} />, label: "Notice", path: "/notice", roles: ["admin", "teacher"] },
+  { icon: <FaMoneyBillWave size={26} />, label: "Fees", path: "/fees", roles: ["admin"] },
+  { icon: <FaBookOpen size={26} />, label: "Homework", path: "/homework", roles: ["admin", "teacher"] },
+  { icon: <FaBook size={26} />, label: "Library", path: "/library", roles: ["admin"] },
+  { icon: <MdDashboard size={26} />, label: "Timetable", path: "/timetable", roles: ["admin", "teacher"] },
+  { icon: <FaBusAlt size={26} />, label: "Transport", path: "/transport", roles: ["admin", "teacher"] },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ userRole = "teacher", userName = "Teacher", userEmail = "" }) {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ✅ Filter menu items based on role
+  const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
 
   return (
     <nav
@@ -52,9 +53,7 @@ export default function Sidebar() {
         />
         <MdMenuOpen
           size={30}
-          className={`cursor-pointer transition-transform duration-500 ${
-            !open ? "rotate-180" : ""
-          }`}
+          className={`cursor-pointer transition-transform duration-500 ${!open ? "rotate-180" : ""}`}
           onClick={() => setOpen(!open)}
         />
       </div>
@@ -63,9 +62,7 @@ export default function Sidebar() {
       <ul className="flex-1 overflow-auto">
         {menuItems.map((item, index) => {
           const isActive =
-            item.path === "/"
-              ? location.pathname === "/"
-              : location.pathname.startsWith(item.path);
+            item.path === "/" ? location.pathname === "/" : location.pathname.startsWith(item.path);
 
           return (
             <li
@@ -88,21 +85,19 @@ export default function Sidebar() {
         })}
       </ul>
 
-      {/* Footer: logout button */}
-      <div className={`px-3 py-2 border-t border-blue-400 ${!open ? "flex justify-center" : ""}`}>
-        <button
-          onClick={() => {
-            // clear any login persistence and reload to show login page
-            try { localStorage.removeItem("loggedIn"); } catch {}
-            window.location.href = "/login";
-          }}
-          className="w-full flex items-center gap-2 text-left rounded-md px-2 py-2 bg-red-600 text-white hover:bg-red-700 transition"
+      {/* Footer */}
+      <div
+        className={`flex items-center gap-2 px-3 py-2 border-t border-blue-400 ${
+          !open ? "justify-center" : ""
+        }`}
+      >
+        <FaUserCircle size={30} />
+        <div
+          className={`transition-all duration-500 ${!open ? "opacity-0 translate-x-5" : "opacity-100"}`}
         >
-          <FaUserCircle size={26} className="text-white" />
-          <span className={`transition-all duration-300 ${!open ? "opacity-0 translate-x-5" : "opacity-100"}`}>
-            Logout
-          </span>
-        </button>
+          <p>{userName}</p>
+          <span className="text-xs text-blue-200">{userEmail || "example@gmail.com"}</span>
+        </div>
       </div>
     </nav>
   );

@@ -10,12 +10,14 @@ type FeeBreakdown = {
 type Student = {
   id: number;
   name: string;
-  fatherName: string;
+  fatherName?: string;
+  parent_name?: string;
+  parent_contact?: string;
   enrollmentNo: string;
   totalFee: number;
   paid: number;
   status: string;
-  lastPaymentDate: string;
+  lastPaymentDate: string | null;
   feeBreakdown: FeeBreakdown[];
 };
 
@@ -58,8 +60,8 @@ export default function FeesDetailsModal({ student, onClose }: FeeDetailsModalPr
         {/* Summary */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 text-sm">
           <div>
-            <p className="text-gray-500">Father’s Name</p>
-            <p className="font-medium">{student.fatherName}</p>
+            <p className="text-gray-500">Parent Name</p>
+            <p className="font-medium">{student.fatherName || student.parent_name || '—'}</p>
           </div>
           <div>
             <p className="text-gray-500">Enrollment No</p>

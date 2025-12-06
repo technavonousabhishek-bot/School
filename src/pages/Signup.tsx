@@ -1,28 +1,44 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+type FormState = {
+  fullname: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+  termsAccepted: boolean;
+  role: string;
+};
+
 function SignupForm() {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormState>({
     fullname: "",
     email: "",
     phone: "",
     password: "",
+    confirmPassword: "",
     termsAccepted: false,
+    role: "admin", // default role
   });
 
-  // 🧩 Handle input change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+  const [loading, setLoading] = useState(false);
+
+  // Handle input change
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target as HTMLInputElement | HTMLSelectElement;
+    if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData((prev) => ({ ...prev, [name]: checked } as any));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value } as any));
+    }
   };
 
-  // 🧩 Handle signup button click
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle signup submit
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.termsAccepted) {
@@ -30,11 +46,71 @@ function SignupForm() {
       return;
     }
 
-    // Simulate signup success
-    console.log("✅ User signed up:", formData);
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match. Please confirm your password.");
+      return;
+    }
 
-    // Navigate to sidebar after signup
-    navigate("/sidebar");
+    setLoading(true);
+
+    // Build payload matching your Django backend
+    const payload = {
+      username: formData.fullname,          // backend expects username -> we use fullname
+      email: formData.email,
+      phone_number: formData.phone,         // backend field name
+      role: formData.role,                  // must be one of: admin|teacher|student|parent|staff
+      password: formData.password,
+      confirm_password: formData.confirmPassword,
+    };
+
+    try {
+      const res = await fetch("https://school-bos-backend.onrender.comAccount/register/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok || res.status === 201) {
+        // registration success
+        // optionally save role/email locally if you need
+        localStorage.setItem("userRole", formData.role);
+        localStorage.setItem("userEmail", formData.email);
+
+        // navigate according to role
+        if (formData.role === "admin") navigate("/admin-dashboard");
+        else if (formData.role === "teacher") navigate("/teacher-dashboard");
+        else navigate("/");
+
+      } else {
+        // show error(s) returned by backend (serializer errors etc.)
+        // backend often returns object of field errors or message
+        let message = "Registration failed.";
+        if (data) {
+          if (typeof data === "string") message = data;
+          else if (data.error) message = data.error;
+          else if (data.non_field_errors) message = data.non_field_errors.join(" ");
+          else {
+            // flatten serializer field errors
+            const parts: string[] = [];
+            for (const key in data) {
+              if (Array.isArray(data[key])) parts.push(`${key}: ${data[key].join(", ")}`);
+              else parts.push(`${key}: ${String(data[key])}`);
+            }
+            if (parts.length) message = parts.join(" | ");
+          }
+        }
+        alert(message);
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+      alert("Network error. Could not reach the server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,14 +119,14 @@ function SignupForm() {
       <div className="relative w-1/2 bg-white flex items-center justify-center">
         <div className="absolute top-0 left-0 p-6">
           <img
-            src="public/images/Navonous_Logo.png"
+            src="/images/Navonous_Logo.png"
             alt="Navonous Logo"
             className="h-auto w-32"
           />
         </div>
         <img
           className="h-auto max-w-full"
-          src="public/images/Create_Account.png"
+          src="/images/Create_Account.png"
           alt="Create Account"
         />
       </div>
@@ -61,9 +137,26 @@ function SignupForm() {
           <h2 className="text-3xl font-bold mb-8">Create account</h2>
 
           <form onSubmit={handleSubmit}>
-            <label className="block text-gray-700 font-medium mb-2">
-              Fullname
-            </label>
+            {/* Role selection */}
+            <div className="mb-6">
+              <label className="block text-gray-700 font-medium mb-2">
+                Select Role
+              </label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
+              >
+                <option value="admin">Admin</option>
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+                <option value="parent">Parent</option>
+                <option value="staff">Staff</option>
+              </select>
+            </div>
+
+            <label className="block text-gray-700 font-medium mb-2">Fullname</label>
             <input
               name="fullname"
               value={formData.fullname}
@@ -73,9 +166,7 @@ function SignupForm() {
               required
             />
 
-            <label className="block text-gray-700 font-medium mb-2">
-              Email
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Email</label>
             <input
               name="email"
               value={formData.email}
@@ -85,9 +176,7 @@ function SignupForm() {
               required
             />
 
-            <label className="block text-gray-700 font-medium mb-2">
-              Phone number
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Phone number</label>
             <input
               name="phone"
               value={formData.phone}
@@ -97,12 +186,20 @@ function SignupForm() {
               required
             />
 
-            <label className="block text-gray-700 font-medium mb-2">
-              Password
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Password</label>
             <input
               name="password"
               value={formData.password}
+              onChange={handleChange}
+              className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
+              type="password"
+              required
+            />
+
+            <label className="block text-gray-700 font-medium mb-2">Confirm Password</label>
+            <input
+              name="confirmPassword"
+              value={formData.confirmPassword}
               onChange={handleChange}
               className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
               type="password"
@@ -125,9 +222,10 @@ function SignupForm() {
 
             <button
               type="submit"
-              className="w-full bg-blue-900 text-white py-3 rounded-lg text-lg font-semibold mb-4 hover:bg-blue-800 transition"
+              className="w-full bg-blue-900 text-white py-3 rounded-lg text-lg font-semibold mb-4 hover:bg-blue-800 transition disabled:opacity-60"
+              disabled={loading}
             >
-              Sign Up
+              {loading ? "Signing up..." : "Sign Up"}
             </button>
           </form>
 
