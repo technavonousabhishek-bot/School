@@ -14,7 +14,7 @@ export default function AttendanceOptions() {
       if (!rawClassParam) return setLabel(null);
       try {
         if (/^\d+$/.test(String(rawClassParam))) {
-          const r = await fetch(`https://school-bos-backend.onrender.comschoolApp/classes/${rawClassParam}/`);
+          const r = await fetch(`https://school-bos-backend.onrender.com/schoolApp/classes/${rawClassParam}/`);
           const data = await r.json();
           if (!mounted) return;
           const sec = data.section ? ` - ${data.section}` : '';
@@ -23,7 +23,7 @@ export default function AttendanceOptions() {
         }
 
         // fallback: search classes list for matching label
-        const res = await fetch("https://school-bos-backend.onrender.comschoolApp/classes/");
+        const res = await fetch("https://school-bos-backend.onrender.com/schoolApp/classes/");
         const classes = await res.json();
         const decoded = decodeURIComponent(String(rawClassParam));
         const found = classes.find((c: any) => {

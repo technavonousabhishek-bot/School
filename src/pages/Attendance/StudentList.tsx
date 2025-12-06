@@ -18,7 +18,7 @@ function AttendanceModal({ student, onClose, selectedClassId, onSaved }: { stude
       const lastDay = new Date(year, month + 1, 0).getDate();
       const to = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
       try {
-        const resp = await fetch(`https://school-bos-backend.onrender.comschoolApp/attendance/?student=${student.id}&from=${from}&to=${to}`);
+        const resp = await fetch(`https://school-bos-backend.onrender.com/schoolApp/attendance/?student=${student.id}&from=${from}&to=${to}`);
         const json = await resp.json();
         const records = Array.isArray(json) ? json : (json.results || []);
         if (!mounted) return;
@@ -89,7 +89,7 @@ function AttendanceModal({ student, onClose, selectedClassId, onSaved }: { stude
     }
 
     setServerErrors([]);
-    fetch('https://school-bos-backend.onrender.comschoolApp/attendance/batch/', {
+    fetch('https://school-bos-backend.onrender.com/schoolApp/attendance/batch/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ records }),
@@ -240,7 +240,7 @@ export default function StudentList() {
       } else {
         // Try to find class by name/label from classes list
         try {
-          const res = await fetch("https://school-bos-backend.onrender.comschoolApp/classes/");
+          const res = await fetch("https://school-bos-backend.onrender.com/schoolApp/classes/");
           const classes = await res.json();
           const decoded = decodeURIComponent(String(rawClassParam));
           const found = classes.find((c: any) => {
@@ -267,7 +267,7 @@ export default function StudentList() {
       }
 
       try {
-        const r = await fetch(`https://school-bos-backend.onrender.comschoolApp/class/${classIdToUse}/students/`);
+        const r = await fetch(`https://school-bos-backend.onrender.com/schoolApp/class/${classIdToUse}/students/`);
         const data = await r.json();
         if (!mounted) return;
         if (Array.isArray(data)) {
@@ -339,7 +339,7 @@ export default function StudentList() {
     localStorage.setItem("attendance", JSON.stringify(allAttendance));
 
     // Sync to backend (mark today's attendance)
-    fetch("https://school-bos-backend.onrender.comschoolApp/mark/", {
+    fetch("https://school-bos-backend.onrender.com/schoolApp/mark/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -23,7 +23,7 @@ function LoginForm({ setIsLoggedIn }: LoginFormProps) {
     };
 
     try {
-      const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.comAccount";
+      const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
       const res = await fetch(`${API_BASE}/login/`, {
         method: "POST",
         mode: "cors",

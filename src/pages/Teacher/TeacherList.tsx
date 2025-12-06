@@ -42,7 +42,7 @@ export default function TeacherList() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const navigate = useNavigate();
 
-  const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.comAccount";
+  const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
 
   // Normalize teacher objects from backend/localStorage so UI can rely on consistent fields
   const normalizeTeacher = (t: any): Teacher => {

@@ -46,7 +46,7 @@ export default function HomeworkDetails() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const storageKey = "homework_data_v1";
-  const API_BASE = "https://school-bos-backend.onrender.comschoolApp/";
+  const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
 
   // load students list — prefer backend for students of a class, fall back to localStorage
   useEffect(() => {

@@ -53,7 +53,7 @@ export default function AddTeacher() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.comAccount";
+  const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
 
   const CLASS_OPTIONS = [
     "Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
@@ -122,7 +122,7 @@ export default function AddTeacher() {
   useEffect(() => {
     if (id) {
       (async () => {
-        const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.comAccount";
+        const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
         try {
           const res = await fetch(`${API_BASE}/teachers/${id}/`);
           if (res.ok) {

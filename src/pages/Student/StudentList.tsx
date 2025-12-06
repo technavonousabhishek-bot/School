@@ -41,7 +41,7 @@ export default function StudentList() {
   const navigate = useNavigate();
 
   const userRole = localStorage.getItem("userRole") || "teacher";
-  const API_BASE = "http://127.0.0.1:8000";
+  const API_BASE = "https://school-bos-backend.onrender.com";
 
   // Always return a consistent HeadersInit object
   const getAuthHeaders = (): HeadersInit => {

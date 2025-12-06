@@ -18,7 +18,7 @@ function AttendanceModal({ teacher, onClose, selectedClassParam }: { teacher: an
         const from = `${year}-${String(month + 1).padStart(2, '0')}-01`;
         const lastDay = new Date(year, month + 1, 0).getDate();
         const to = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-        const resp = await fetch(`https://school-bos-backend.onrender.comschoolApp/teacher-attendance/?teacher=${teacher.id}&from=${from}&to=${to}`);
+        const resp = await fetch(`https://school-bos-backend.onrender.com/schoolApp/teacher-attendance/?teacher=${teacher.id}&from=${from}&to=${to}`);
         const json = await resp.json();
         const records = Array.isArray(json) ? json : (json.results || []);
         if (!mounted) return;
@@ -81,7 +81,7 @@ function AttendanceModal({ teacher, onClose, selectedClassParam }: { teacher: an
     }
 
     setServerErrors([]);
-    fetch('https://school-bos-backend.onrender.comschoolApp/teacher-attendance/batch/', {
+    fetch('https://school-bos-backend.onrender.com/schoolApp/teacher-attendance/batch/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ records }),
@@ -194,7 +194,7 @@ export default function TeacherList() {
     let mounted = true;
     const load = async () => {
       try {
-        const res = await fetch('https://school-bos-backend.onrender.comAccount/teachers/');
+        const res = await fetch('https://school-bos-backend.onrender.com/Account/teachers/');
         const data = await res.json();
         if (!mounted) return;
         if (Array.isArray(data)) {
@@ -259,7 +259,7 @@ export default function TeacherList() {
     localStorage.setItem('attendance', JSON.stringify(all));
     // sync to backend (best-effort)
     const class_room = (/^\d+$/.test(String(classParam)) ? String(classParam) : undefined);
-    fetch('https://school-bos-backend.onrender.comschoolApp/mark/teacher/', {
+    fetch('https://school-bos-backend.onrender.com/schoolApp/mark/teacher/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ class_room: class_room, date: new Date().toISOString().slice(0,10), records: [{ teacher: teacherId, status }] }),

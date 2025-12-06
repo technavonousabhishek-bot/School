@@ -29,7 +29,7 @@ export default function FeesStudentList() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [classLabel, setClassLabel] = useState<string | null>(null);
 
-  const SCHOOL_API_BASE = (window as any).__SCHOOL_API_BASE__ || (window as any).REACT_APP_SCHOOL_API_BASE || "https://school-bos-backend.onrender.comschoolApp";
+  const SCHOOL_API_BASE = (window as any).__SCHOOL_API_BASE__ || (window as any).REACT_APP_SCHOOL_API_BASE || "https://school-bos-backend.onrender.com/schoolApp";
 
   useEffect(() => {
     // Attempt to fetch students for the class from backend if endpoint exists.

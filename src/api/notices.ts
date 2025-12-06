@@ -11,7 +11,7 @@ export type NoticePayload = {
 
 export type Notice = NoticePayload & { id: string; createdAt: string };
 
-export const API_BASE = 'https://school-bos-backend.onrender.comschoolApp/';
+export const API_BASE = 'https://school-bos-backend.onrender.com/schoolApp/';
 
 async function handleResponse(resp: Response) {
   if (!resp.ok) {

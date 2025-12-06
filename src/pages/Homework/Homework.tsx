@@ -22,7 +22,7 @@ export default function Homework() {
   const [selectedSection, setSelectedSection] = useState("All Sections");
   const navigate = useNavigate();
 
-  const API_BASE = "https://school-bos-backend.onrender.comschoolApp/";
+  const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
   const [homeworkCounts, setHomeworkCounts] = useState<Record<string | number, number>>({});
 
   useEffect(() => {

@@ -64,7 +64,7 @@ function SignupForm() {
     };
 
     try {
-      const res = await fetch("https://school-bos-backend.onrender.comAccount/register/", {
+      const res = await fetch("https://school-bos-backend.onrender.com/Account/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

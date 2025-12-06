@@ -14,7 +14,7 @@ export default function AttendanceMain() {
   // Fetch classes from backend
   useEffect(() => {
     let mounted = true;
-    fetch("https://school-bos-backend.onrender.comschoolApp/classes/")
+    fetch("https://school-bos-backend.onrender.com/schoolApp/classes/")
       .then((r) => r.json())
       .then((data) => {
         if (!mounted) return;

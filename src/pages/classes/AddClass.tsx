@@ -3,7 +3,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
-const API_BASE = "https://school-bos-backend.onrender.comschoolApp/";
+const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
 
 /**
  * AddEditClass component - updated multi-select for subjects so user can select multiple items at once.

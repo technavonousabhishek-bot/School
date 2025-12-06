@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_BASE = "https://school-bos-backend.onrender.comschoolApp/";
+const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
 
 type Stop = {
   id: string;

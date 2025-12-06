@@ -3,7 +3,7 @@ import { FaChalkboardTeacher } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_BASE = "https://school-bos-backend.onrender.comschoolApp/";
+const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
 
 export default function ClassesDashboard() {
   const navigate = useNavigate();
