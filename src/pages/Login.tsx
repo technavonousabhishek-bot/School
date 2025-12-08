@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { BASE_URL } from "../config";
 
 interface LoginFormProps {
   setIsLoggedIn: (value: boolean) => void;
@@ -17,68 +16,100 @@ function LoginForm({ setIsLoggedIn }: LoginFormProps) {
     e.preventDefault();
     setLoading(true);
 
-    const payload = { email, password };
+    // Build payload: backend LoginSerializer expects { email, password }
+    const payload = {
+      email: email,
+      password: password,
+    };
 
     try {
-      // FINAL API CALL
-      const res = await fetch(`${BASE_URL}/Account/login/`, {
+      const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
+      const res = await fetch(`${API_BASE}/login/`, {
         method: "POST",
         mode: "cors",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
+        // credentials: 'include' // only if you use cookie/session auth
       });
 
+      // Always read raw text first to capture any non-JSON error responses
       const text = await res.text();
       let data: any = {};
-
       try {
         data = text ? JSON.parse(text) : {};
-      } catch {
-        console.warn("Non-JSON login response:", text);
+      } catch (err) {
+        console.warn("Login: received non-JSON response:", text);
       }
 
+      console.log("Login response status:", res.status, "body:", data || text);
+
       if (!res.ok) {
+        // Flatten common error shapes into a user-friendly message
         let msg = "Login failed.";
-
-        if (data.detail) msg = data.detail;
-        else if (data.message) msg = data.message;
-        else if (typeof data === "object") {
-          msg = Object.entries(data)
-            .map(([k, v]: any) =>
-              Array.isArray(v) ? `${k}: ${v.join(", ")}` : `${k}: ${v}`
-            )
-            .join(" | ");
-        } else if (text) msg = text;
-
+        if (data && typeof data === "object") {
+          if (data.detail) msg = data.detail;
+          else if (data.message) msg = data.message;
+          else {
+            const parts: string[] = [];
+            for (const k in data) {
+              const v = data[k];
+              if (Array.isArray(v)) parts.push(`${k}: ${v.join(", ")}`);
+              else parts.push(`${k}: ${String(v)}`);
+            }
+            if (parts.length) msg = parts.join(" | ");
+          }
+        } else if (text) {
+          msg = text;
+        }
         alert(msg);
         setLoading(false);
         return;
       }
 
-      const { access, refresh, role, username } = data;
+      // Success: expect access & refresh tokens
+      const { access, refresh, role, username, teacher_profile } = data as any;
 
       if (!access || !refresh) {
-        alert("Login succeeded but tokens missing.");
+        alert("Login succeeded but tokens are missing in response.");
         setLoading(false);
         return;
       }
 
+      // Store tokens & basic user info (localStorage used here for simplicity)
       localStorage.setItem("accessToken", access);
       localStorage.setItem("refreshToken", refresh);
       localStorage.setItem("userRole", role || "student");
       localStorage.setItem("userEmail", email);
+      // Keep both keys for compatibility: some components read `username`, others `userName`
       localStorage.setItem("username", username || email);
+      localStorage.setItem("userName", username || email);
+
+      // If backend included a teacher_profile (admin-created), persist it so dashboard can show it
+      if (teacher_profile) {
+        try {
+          localStorage.setItem("teacherProfile", JSON.stringify(teacher_profile));
+          // prefer displaying teacher's actual name
+          const displayName = teacher_profile.teacher_name || teacher_profile.teacherName || username || email;
+          localStorage.setItem("userName", displayName);
+        } catch (err) {
+          console.warn("Failed to save teacher_profile to localStorage", err);
+        }
+      }
 
       setIsLoggedIn(true);
 
+      // Navigate according to role
+      // Students should land on the main dashboard (/) rather than a non-existent
+      // `/student` route. Teachers go to `/teacher`, admins to `/`.
       if (role === "admin") navigate("/");
       else if (role === "teacher") navigate("/teacher");
+      else if (role === "student") navigate("/");
       else navigate("/");
 
     } catch (err) {
-      console.error("Network error:", err);
+      console.error("Network error while logging in:", err);
       alert("Network error. Could not reach the server.");
     } finally {
       setLoading(false);
@@ -90,9 +121,17 @@ function LoginForm({ setIsLoggedIn }: LoginFormProps) {
       {/* Left Side */}
       <div className="relative w-1/2 bg-white flex items-center justify-center">
         <div className="absolute top-0 left-0 p-6">
-          <img src="/images/Navonous_Logo.png" alt="Navonous Logo" className="h-auto w-32" />
+          <img
+            src="/images/Navonous_Logo.png"
+            alt="Navonous Logo"
+            className="h-auto w-32"
+          />
         </div>
-        <img className="h-auto max-w-full" src="/images/Welcome_Back.png" alt="Welcome Image" />
+        <img
+          className="h-auto max-w-full"
+          src="/images/Welcome_Back.png"
+          alt="Welcome Image"
+        />
       </div>
 
       {/* Right Side */}
@@ -105,7 +144,7 @@ function LoginForm({ setIsLoggedIn }: LoginFormProps) {
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full mb-4 px-4 py-2 border border-gray-300 rounded focus:outline-none rounded-lg"
               type="email"
               required
             />
@@ -114,7 +153,7 @@ function LoginForm({ setIsLoggedIn }: LoginFormProps) {
             <input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full mb-4 px-4 py-2 border border-gray-300 rounded focus:outline-none rounded-lg"
               type="password"
               required
             />
@@ -127,7 +166,7 @@ function LoginForm({ setIsLoggedIn }: LoginFormProps) {
 
             <button
               type="submit"
-              className="w-full bg-blue-900 text-white py-3 rounded-lg text-lg font-semibold mb-4 disabled:opacity-60"
+              className="w-full bg-blue-900 text-white py-3 rounded text-lg font-semibold mb-4 rounded-lg disabled:opacity-60"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Log In"}

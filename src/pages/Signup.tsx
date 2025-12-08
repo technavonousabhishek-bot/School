@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../config";
 
 type FormState = {
   fullname: string;
@@ -65,8 +64,7 @@ function SignupForm() {
     };
 
     try {
-      
-      const res = await fetch(`${BASE_URL}/Account/register/`, {
+      const res = await fetch("https://school-bos-backend.onrender.com/Account/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,6 +79,20 @@ function SignupForm() {
         // optionally save role/email locally if you need
         localStorage.setItem("userRole", formData.role);
         localStorage.setItem("userEmail", formData.email);
+
+        // If backend sent a teacher_profile (admin-created profile matched by email), store it
+        if (data && (data as any).teacher_profile) {
+          try {
+            localStorage.setItem("teacherProfile", JSON.stringify((data as any).teacher_profile));
+            const displayName = (data as any).teacher_profile.teacher_name || formData.fullname;
+            localStorage.setItem("userName", displayName);
+          } catch (err) {
+            console.warn("Could not persist teacher_profile from signup response", err);
+          }
+        } else {
+          // still set a userName for UI
+          localStorage.setItem("userName", formData.fullname);
+        }
 
         // navigate according to role
         if (formData.role === "admin") navigate("/admin-dashboard");
