@@ -135,7 +135,7 @@ export default function IssueBook() {
         if (!res.ok) throw new Error(await res.text());
         return res.json();
       })
-      .then(async (data) => {
+      .then(async () => {
         // refresh issued list and books from backend to keep consistent
         try {
           const issuedRes = await fetch(API_BASE + 'issued/');
