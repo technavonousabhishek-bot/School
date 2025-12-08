@@ -2,14 +2,20 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../../api/notices";
 
-interface IssuedBook {
-  id: number;
-  studentId: number;
-  bookId: number;
-  issueDate: string;
-  dueDate: string;
-  status: "Issued" | "Returned";
-}
+// Ensure IssuedBook includes both naming styles used by the UI:
+type IssuedBook = {
+	id: number;
+	book?: { id?: number; title?: string } | number | string;
+	book_title?: string;
+	issued_user?: number | { id?: number; name?: string } | string;
+	issued_to?: string;
+	issueDate?: string;
+	issue_date?: string;
+	dueDate?: string;
+	due_date?: string;
+	is_returned?: boolean;
+	isReturned?: boolean;
+};
 
 interface Book {
   id: number;
@@ -17,17 +23,11 @@ interface Book {
   author: string;
 }
 
-interface Student {
-  id: number;
-  name: string;
-  className: string;
-}
-
 export default function IssuedBooks() {
   const navigate = useNavigate();
 
   const [issuedBooks, setIssuedBooks] = useState<IssuedBook[]>([]);
-  const [books, setBooks] = useState<(Book & { totalCopies?: number; availableCopies?: number })[]>([]);
+  const [books, setBooks] = useState<(Book & { totalCopies?: number; availableCopies?: number; available_copies?: number })[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = () => {
@@ -107,17 +107,39 @@ export default function IssuedBooks() {
                 </thead>
                 <tbody>
                   {issuedBooks.map((record) => {
-                    const book = books.find((b) => b.id === record.book) || { title: record.book_title } as any;
+                    // derive student display
+                    const student =
+                      typeof record.issued_user === "object"
+                        ? (record.issued_user as any).name ?? JSON.stringify(record.issued_user)
+                        : record.issued_user ?? record.issued_to ?? "Unknown";
+
+                    // derive book title (handle id, object, or fallback to book_title)
+                    const bookTitle =
+                      typeof record.book === "object"
+                        ? (record.book as any).title ?? (record.book as any).id ?? record.book_title ?? "Unknown"
+                        : typeof record.book === "number"
+                        ? books.find((b) => b.id === record.book)?.title ?? record.book_title ?? "Unknown"
+                        : // book could be missing or string
+                          record.book_title ?? String(record.book ?? "Unknown");
+
+                    const issueDate = record.issue_date ?? record.issueDate ?? "-";
+                    const dueDate = record.due_date ?? record.dueDate ?? "-";
+                    const returned = record.is_returned ?? record.isReturned ?? false;
+
                     return (
                       <tr key={record.id} className="hover:bg-gray-100 text-center transition">
-                        <td className="p-2 border">{record.issued_user ?? record.issued_to}</td>
-                        <td className="p-2 border">{book.title}</td>
-                        <td className="p-2 border">{record.issue_date}</td>
-                        <td className="p-2 border">{record.due_date}</td>
-                        <td className={`p-2 border font-medium ${record.is_returned ? 'text-green-600' : 'text-yellow-600'}`}>{record.is_returned ? 'Returned' : 'Issued'}</td>
+                        <td className="p-2 border">{student}</td>
+                        <td className="p-2 border">{bookTitle}</td>
+                        <td className="p-2 border">{issueDate}</td>
+                        <td className="p-2 border">{dueDate}</td>
+                        <td className={`p-2 border font-medium ${returned ? "text-green-600" : "text-yellow-600"}`}>
+                          {returned ? "Returned" : "Issued"}
+                        </td>
                         <td className="p-2 border">
-                          {!record.is_returned ? (
-                            <button onClick={() => markReturned(record.id)} className="px-3 py-1 bg-green-600 text-white rounded">Mark Returned</button>
+                          {!returned ? (
+                            <button onClick={() => markReturned(record.id)} className="px-3 py-1 bg-green-600 text-white rounded">
+                              Mark Returned
+                            </button>
                           ) : (
                             <span className="text-gray-500">—</span>
                           )}
@@ -133,7 +155,9 @@ export default function IssuedBooks() {
       )}
 
       <div className="mt-6">
-        <button onClick={() => navigate("/library")} className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md">Back to Library</button>
+        <button onClick={() => navigate("/library")} className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md">
+          Back to Library
+        </button>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ImBooks } from "react-icons/im";
+
 import { MdMenuOpen, MdDashboard } from "react-icons/md";
-import { SiGoogleclassroom } from "react-icons/si";
+
 import {
   FaChalkboardTeacher,
   FaUserCircle,
