@@ -30,16 +30,22 @@ export default function AttendanceMain() {
   return (
     <main className="flex-1 p-6 bg-gray-50 min-h-screen">
       {/* Page Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-xl leading-none px-2 py-1 rounded hover:bg-gray-200"
-          aria-label="Go back"
-        >
-          ←
-        </button>
-        <h1 className="text-2xl font-semibold text-gray-700">Attendance Management</h1>
-      </div>
+      <div className="flex items-center justify-between mb-6">
+  {/* Heading left */}
+  <h1 className="text-2xl font-semibold text-gray-700">
+    Attendance Management
+  </h1>
+
+  {/* Back Button right */}
+  <button
+    onClick={() => navigate(-1)}
+    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+    aria-label="Go back"
+  >
+    Back
+  </button>
+</div>
+
 
       {/* Classes Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">

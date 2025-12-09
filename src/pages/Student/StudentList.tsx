@@ -241,15 +241,7 @@ export default function StudentList() {
           ))}
         </select>
 
-        <div className="ml-auto">
-          <button
-            className="px-3 py-2 bg-white border rounded-lg shadow-sm"
-            onClick={() => fetchStudents()}
-            title="Refresh list"
-          >
-            Refresh
-          </button>
-        </div>
+       
       </div>
 
       {/* Loading / Error */}

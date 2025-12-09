@@ -43,9 +43,20 @@ export default function NoticeTeachers() {
 
   return (
     <main className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center mb-6">
-        <h2 className="text-2xl font-bold">Notices — Teachers</h2>
-      </div>
+      <div className="flex items-center justify-between mb-6">
+  {/* Heading left */}
+  <h2 className="text-2xl font-bold text-gray-700">Notices — Teachers</h2>
+
+  {/* Back button right */}
+  <button
+    onClick={() => navigate(-1)}
+    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+    aria-label="Go back"
+  >
+    Back
+  </button>
+</div>
+
 
       <div className="space-y-4 max-w-3xl">
         {loading && <div className="text-gray-500">Loading notices…</div>}

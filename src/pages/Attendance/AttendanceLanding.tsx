@@ -6,17 +6,12 @@ export default function AttendanceLanding() {
 
   return (
     <main className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-xl leading-none px-2 py-1 rounded hover:bg-gray-200"
-          aria-label="Go back"
-        >
-          ←
-        </button>
+     <div className="flex justify-between items-center mb-6">
+  <h1 className="text-2xl font-semibold">Attendance</h1>
 
-        <h1 className="text-2xl font-semibold mb-6">Attendance</h1>
-      </div>
+  
+</div>
+
 
       <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
         <div

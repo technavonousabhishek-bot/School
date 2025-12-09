@@ -329,11 +329,17 @@ export default function HomeworkDetails() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <button onClick={() => navigate("/homework")} className="mb-4 text-blue-600 hover:underline">
-        ← Back to Classes
-      </button>
+     <div className="flex items-center justify-between mb-4">
+  <h2 className="text-2xl font-bold">Homework for {displayClassTitle}</h2>
+  
+  <button
+    onClick={() => navigate("/homework")}
+    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+  >
+    Back to Classes
+  </button>
+</div>
 
-      <h2 className="text-2xl font-bold mb-4">Homework for {displayClassTitle}</h2>
 
       {/* Assign New Homework Section */}
       <div className="bg-white p-4 rounded-xl shadow mb-6">

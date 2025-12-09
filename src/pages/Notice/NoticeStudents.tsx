@@ -43,8 +43,19 @@ export default function NoticeStudents() {
   return (
     <main className="p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Notices — Students (Class-wise)</h2>
-      </div>
+  {/* Heading left */}
+  <h2 className="text-2xl font-bold">Notices — Students (Class-wise)</h2>
+
+  {/* Button right */}
+  <button
+    onClick={() => navigate(-1)}
+    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+    aria-label="Go back"
+  >
+    Back
+  </button>
+</div>
+
 
       {classesList.length === 0 ? (
         <div className="text-gray-500">No classes found. Add classes or students to show notices.</div>
