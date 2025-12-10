@@ -74,6 +74,13 @@ import AddTeacher from "./pages/Teacher/AddTeacher";
 import TeacherList from "./pages/Teacher/TeacherList";
 import ExamsResultsHome from "./pages/ExamsResults/ExamsResultsHome";
 import ManageResults from "./pages/ExamsResults/ManageResults";
+import ExamsPage from "./pages/Exams/ExamsPage";
+
+import MarksEntryPage from "./pages/Exams/MarksEntryPage";
+import ClassSelectPage from "./pages/Exams/ClassSelectPage";
+import SelectExamPage from "./pages/Exams/SelectExamPage";
+
+
 
 function App() {
   // 🧩 Simple login state (dummy auth)
@@ -192,6 +199,14 @@ function App() {
     {/*  Teacher dashboard */ }
 
                          <Route path="/teacher" element={<TeacherDasboard />} />
+
+     {/*  Exam & Grades */ }
+                          <Route path="/exams" element={<ExamsPage />} />
+                          <Route path="/exams/add-exams" element={<SelectExamPage />} />
+                          <Route path="/exams/add-marks/marks-entry" element={<MarksEntryPage />} />
+                          <Route path="/exams/add-exams/select-class" element={<ClassSelectPage />} />
+                          
+                          
 
 
            

@@ -22,6 +22,7 @@ const allMenuItems = [
   { icon: <FaChalkboardTeacher size={26} />, label: "Teachers", path: "/teachers", roles: ["admin"] },
   { icon: <FaChalkboardTeacher size={26} />, label: "Classes", path: "/classes", roles: ["admin", "teacher"] },
   { icon: <FaUserCheck size={26} />, label: "Attendance", path: "/attendance", roles: ["admin", "teacher"] },
+  { icon: <FaBookOpen size={26} />, label: "Exams & Grades", path: "/exams", roles: ["admin", "teacher"] },
   { icon: <IoMegaphoneOutline size={26} />, label: "Notice", path: "/notice", roles: ["admin", "teacher"] },
   { icon: <FaMoneyBillWave size={26} />, label: "Fees", path: "/fees", roles: ["admin"] },
   { icon: <FaBookOpen size={26} />, label: "Homework", path: "/homework", roles: ["admin", "teacher"] },
