@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "../../api/notices";
+import { API_ENDPOINTS, buildApiUrl } from "../../config/api";
 
 // Ensure IssuedBook includes both naming styles used by the UI:
 type IssuedBook = {
-	id: number;
-	book?: { id?: number; title?: string } | number | string;
-	book_title?: string;
-	issued_user?: number | { id?: number; name?: string } | string;
-	issued_to?: string;
-	issueDate?: string;
-	issue_date?: string;
-	dueDate?: string;
-	due_date?: string;
-	is_returned?: boolean;
-	isReturned?: boolean;
+  id: number;
+  book?: { id?: number; title?: string } | number | string;
+  book_title?: string;
+  issued_user?: number | { id?: number; name?: string } | string;
+  issued_to?: string;
+  issueDate?: string;
+  issue_date?: string;
+  dueDate?: string;
+  due_date?: string;
+  is_returned?: boolean;
+  isReturned?: boolean;
 };
 
 interface Book {
@@ -32,7 +32,7 @@ export default function IssuedBooks() {
 
   const load = () => {
     setLoading(true);
-    Promise.all([fetch(API_BASE + "issued/"), fetch(API_BASE + "books/")])
+    Promise.all([fetch(API_ENDPOINTS.school.issued), fetch(API_ENDPOINTS.school.books)])
       .then(async ([r1, r2]) => {
         if (!r1.ok) throw new Error(await r1.text());
         if (!r2.ok) throw new Error(await r2.text());
@@ -50,7 +50,7 @@ export default function IssuedBooks() {
   }, []);
 
   const markReturned = (id: number) => {
-    fetch(API_BASE + `return/${id}/`, { method: "PUT" })
+    fetch(buildApiUrl(API_ENDPOINTS.school.return, `${id}/`), { method: "PUT" })
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return res.json();
@@ -118,8 +118,8 @@ export default function IssuedBooks() {
                       typeof record.book === "object"
                         ? (record.book as any).title ?? (record.book as any).id ?? record.book_title ?? "Unknown"
                         : typeof record.book === "number"
-                        ? books.find((b) => b.id === record.book)?.title ?? record.book_title ?? "Unknown"
-                        : // book could be missing or string
+                          ? books.find((b) => b.id === record.book)?.title ?? record.book_title ?? "Unknown"
+                          : // book could be missing or string
                           record.book_title ?? String(record.book ?? "Unknown");
 
                     const issueDate = record.issue_date ?? record.issueDate ?? "-";

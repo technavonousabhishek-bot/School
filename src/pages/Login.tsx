@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { API_ENDPOINTS } from "../config/api";
 
 interface LoginFormProps {
   setIsLoggedIn: (value: boolean) => void;
@@ -23,8 +24,8 @@ function LoginForm({ setIsLoggedIn }: LoginFormProps) {
     };
 
     try {
-      const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
-      const res = await fetch(`${API_BASE}/login/`, {
+
+      const res = await fetch(API_ENDPOINTS.account.login, {
         method: "POST",
         mode: "cors",
         headers: {

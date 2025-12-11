@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_ENDPOINTS, buildApiUrl } from "../../config/api";
 
 interface DocumentFile {
   title?: string;
@@ -23,17 +24,17 @@ interface TeacherForm {
   gender: string; // Maps to Select Gender
   dob: string; // Maps to DOB date input
   profile_picture?: ProfilePicture | null; // Maps to Profile Picture upload
-  
+
   staff_id: string; // Maps to Staff ID
   specialization: string; // Maps to Specialization input (was department)
   classes_handled: string; // Maps to Class Handled (single select)
   experience: string; // Maps to Total Years of Experience
   qualification: string; // Maps to Qualifications
-  
+
   contact: string; // Maps to Contact Number
   address: string; // Maps to Address
   language_preference: string; // Maps to Language Preference
-  
+
   aadhaar_doc?: DocumentFile | null; // Maps to Aadhaar File upload
   experience_doc?: DocumentFile | null; // Maps to Experience Letter upload
 
@@ -43,7 +44,7 @@ interface TeacherForm {
   documents: DocumentFile[]; // Array for all documents displayed in UI
   is_active?: boolean;
   class_teacher_of?: string; // store class name or id string for display
-  
+
   // Date fields kept separate for state tracking clarity
   joiningDate: string; // YYYY-MM-DD
   updatedAt: string; // ISO string
@@ -53,7 +54,7 @@ export default function AddTeacher() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
+
 
   ;
 
@@ -120,12 +121,12 @@ export default function AddTeacher() {
   useEffect(() => {
     if (id) {
       (async () => {
-        const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
+
         try {
-          const res = await fetch(`${API_BASE}/teachers/${id}/`);
+          const res = await fetch(buildApiUrl(API_ENDPOINTS.account.teachers, id));
           if (res.ok) {
             const existing = await res.json();
-            
+
             // **IMPROVED LOADING LOGIC** - Assumes backend sends snake_case
             setFormData((prev) => ({
               ...prev,
@@ -133,25 +134,25 @@ export default function AddTeacher() {
               dob: formatDateForInput(existing.dob),
               joiningDate: formatDateForInput(existing.joiningDate) || prev.joiningDate,
               updatedAt: existing.updatedAt || prev.updatedAt,
-              
+
               // Handle optional/missing fields and potential file URL loading
               profile_picture: existing.profile_picture || prev.profile_picture,
               aadhaar_doc: existing.aadhaar_doc || prev.aadhaar_doc,
               experience_doc: existing.experience_doc || prev.experience_doc,
-              
+
               // Frontend Lists
               classes: existing.classes || [], // Assuming backend might also return a `classes` list or you'll need to parse `classes_handled`
               subject: existing.subject || [], // Assuming backend might return a `subject` list
               documents: prev.documents, // Documents array might need custom re-construction if only URLs are returned
             }));
-            
+
             setIsEditMode(true);
             return;
           }
         } catch (e) {
           // Fallback to localStorage logic remains the same (omitted for brevity)
         }
-        
+
         // ... (Local Storage Fallback code removed for brevity, keep it if needed)
       })();
     } else {
@@ -216,7 +217,7 @@ export default function AddTeacher() {
       setFormData((prev) => {
         const updatedDocs = [...prev.documents.filter((d) => d.title !== title), newDoc];
         const next: any = { ...prev, documents: updatedDocs };
-        
+
         // Use backend-named doc slots when title matches
         if (title.toLowerCase().includes("aadhaar")) next.aadhaar_doc = newDoc;
         if (title.toLowerCase().includes("experience")) next.experience_doc = newDoc;
@@ -230,7 +231,7 @@ export default function AddTeacher() {
     setFormData((prev) => {
       const remaining = prev.documents.filter((d) => d.name !== name);
       const next: any = { ...prev, documents: remaining };
-      
+
       // remove from backend-named fields if matching
       if (prev.aadhaar_doc?.name === name) next.aadhaar_doc = null; // Use null to clear the field
       if (prev.experience_doc?.name === name) next.experience_doc = null; // Use null to clear the field
@@ -247,7 +248,7 @@ export default function AddTeacher() {
       ...formData,
       updatedAt: new Date().toISOString(),
       staff_id: formData.staff_id || generateStaffId(),
-      
+
       // **CRITICAL: Prepare payload for backend**
       // The backend expects snake_case, which is now the primary key in formData.
       // We only include fields relevant for the JSON payload, omitting file data.
@@ -262,10 +263,10 @@ export default function AddTeacher() {
       contact: formData.contact,
       address: formData.address,
       language_preference: formData.language_preference,
-      
+
       // subject array is still sent as empty as per your initial logic,
       // because the Django model has no `subject` field for JSON deserialization.
-      subject: [], 
+      subject: [],
     };
 
     // The JSON payload sent to the API:
@@ -304,13 +305,13 @@ export default function AddTeacher() {
       const asNum = Number(rawClassTeacher);
       if (!isNaN(asNum) && asNum > 0) apiPayload.class_teacher_of = asNum;
     }
-    
+
     // API logic remains the same (omitted for brevity)
     // ...
-    
+
     try {
       let res: Response | null = null;
-      const url = isEditMode ? `${API_BASE}/teachers/${id}/update/` : `${API_BASE}/teachers/create/`;
+      const url = isEditMode ? buildApiUrl(API_ENDPOINTS.account.teachers, id!, 'update') : buildApiUrl(API_ENDPOINTS.account.teachers, 'create');
       const method = isEditMode ? "PUT" : "POST";
 
       res = await fetch(url, {
@@ -343,7 +344,7 @@ export default function AddTeacher() {
 
     // Local fallback logic remains the same (omitted for brevity, keep it if needed)
     // ...
-    
+
     navigate("/teachers");
   };
 
@@ -462,21 +463,21 @@ export default function AddTeacher() {
   return (
     <main className="max-w-3xl mx-auto p-6 bg-white rounded-2xl shadow mt-6">
       <div className="flex justify-between items-center mb-4">
-  <h2 className="text-2xl font-bold">
-    {isEditMode ? "Edit Teacher" : "Add Teacher"}
-  </h2>
+        <h2 className="text-2xl font-bold">
+          {isEditMode ? "Edit Teacher" : "Add Teacher"}
+        </h2>
 
-  <button
-    type="button"
-    onClick={() => navigate("/teachers")}
-    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg"
-  >
-    Back
-  </button>
-</div>
-      
+        <button
+          type="button"
+          onClick={() => navigate("/teachers")}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg"
+        >
+          Back
+        </button>
+      </div>
+
       <div className="mb-2">
-        
+
       </div>
 
       {serverErrors && (
@@ -489,10 +490,10 @@ export default function AddTeacher() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* INPUT: Full Name -> teacher_name */}
         <input name="teacher_name" value={formData.teacher_name} onChange={handleChange} placeholder="Full Name" className="border rounded-lg px-4 py-2" required />
-        
+
         {/* INPUT: Email -> email */}
         <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="border rounded-lg px-4 py-2" required />
-        
+
         {/* INPUT: Specialization -> specialization */}
         <input name="specialization" value={formData.specialization} onChange={handleChange} placeholder="Specialization" className="border rounded-lg px-4 py-2" />
 
@@ -515,7 +516,7 @@ export default function AddTeacher() {
           <input type="checkbox" name="is_active" checked={!!formData.is_active} onChange={handleChange} id="is_active" />
           <label htmlFor="is_active" className="text-sm">Active</label>
         </div>
-        
+
         {/* Classes selector (Unchanged) */}
         <div className="col-span-2">
           <label className="font-medium block mb-1">Classes (assign from existing)</label>
@@ -566,16 +567,16 @@ export default function AddTeacher() {
 
         {/* INPUT: Contact Number -> contact */}
         <input name="contact" value={formData.contact} onChange={handleChange} placeholder="Contact Number" className="border rounded-lg px-4 py-2" />
-        
+
         {/* INPUT: Experience -> experience */}
         <input name="experience" value={formData.experience} onChange={handleChange} placeholder="Total Years of Experience" className="border rounded-lg px-4 py-2" />
-        
+
         {/* INPUT: Qualifications -> qualification */}
         <input name="qualification" value={formData.qualification} onChange={handleChange} placeholder="Qualifications (e.g., M.A., B.Ed.)" className="border rounded-lg px-4 py-2" />
-        
+
         {/* TEXTAREA: Address -> address */}
         <textarea name="address" value={formData.address} onChange={handleChange} placeholder="Address" className="border rounded-lg px-4 py-2 col-span-2" />
-        
+
         {/* SELECT: Gender -> gender */}
         <select name="gender" value={formData.gender} onChange={handleChange} className="border rounded-lg px-4 py-2">
           <option value="">Select Gender</option>
@@ -583,10 +584,10 @@ export default function AddTeacher() {
           <option>Female</option>
           <option>Other</option>
         </select>
-        
+
         {/* INPUT: DOB -> dob */}
         <input type="date" name="dob" value={formData.dob} onChange={handleChange} className="border rounded-lg px-4 py-2" />
-        
+
         {/* INPUT: Joining Date (Unchanged) */}
         <input type="date" name="joiningDate" value={formatDateForInput(formData.joiningDate)} onChange={handleChange} className="border rounded-lg px-4 py-2" />
 
@@ -597,7 +598,7 @@ export default function AddTeacher() {
         </div>
 
         {/* SELECT: Class Handled (one) -> classes_handled */}
-        
+
 
         {/* SELECT: Language preference -> language_preference */}
         <div>

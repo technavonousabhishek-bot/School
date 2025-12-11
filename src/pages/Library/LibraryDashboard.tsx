@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaBook, FaPlusCircle, FaListAlt, FaSearch, FaSort } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "../../api/notices";
+import { API_ENDPOINTS, buildApiUrl } from "../../config/api";
 
 type Book = {
   id: number;
@@ -60,7 +60,7 @@ export default function LibraryDashboard() {
   const fetchBooks = () => {
     setLoading(true);
     setError(null);
-    fetch(API_BASE + "books/")
+    fetch(API_ENDPOINTS.school.books)
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return res.json();
@@ -172,7 +172,7 @@ export default function LibraryDashboard() {
               available_copies: Number(newBook.quantity),
             };
             try {
-              const res = await fetch(API_BASE + 'books/', {
+              const res = await fetch(API_ENDPOINTS.school.books, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -216,7 +216,7 @@ export default function LibraryDashboard() {
                   <td className="p-3 border text-center">{book.quantity ?? book.totalCopies ?? 0}</td>
                   <td className="p-3 border text-center">{book.available_copies ?? book.availableCopies ?? 0}</td>
                   <td className="p-3 border text-center">
-                    <span className={`px-2 py-1 rounded-md text-sm font-medium ${ (book.available_copies ?? book.availableCopies ?? 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }`}>
+                    <span className={`px-2 py-1 rounded-md text-sm font-medium ${(book.available_copies ?? book.availableCopies ?? 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {(book.available_copies ?? book.availableCopies ?? 0) > 0 ? 'Available' : 'Out of Stock'}
                     </span>
                   </td>
@@ -226,7 +226,7 @@ export default function LibraryDashboard() {
                       <button onClick={async () => {
                         if (!confirm('Delete this book?')) return;
                         try {
-                          const res = await fetch(API_BASE + `books/${book.id}/`, { method: 'DELETE' });
+                          const res = await fetch(buildApiUrl(API_ENDPOINTS.school.books, `${book.id}/`), { method: 'DELETE' });
                           if (res.status === 204) {
                             fetchBooks();
                           } else {

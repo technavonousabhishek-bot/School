@@ -1,6 +1,7 @@
 // src/pages/Homework/Homework.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS } from "../../config/api";
 
 interface SchoolClass {
   id?: number;
@@ -22,7 +23,7 @@ export default function Homework() {
   const [selectedSection, setSelectedSection] = useState("All Sections");
   const navigate = useNavigate();
 
-  const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
+
   const [homeworkCounts, setHomeworkCounts] = useState<Record<string | number, number>>({});
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function Homework() {
     (async () => {
       // Try backend
       try {
-        const res = await fetch(`${API_BASE}classes/`);
+        const res = await fetch(API_ENDPOINTS.school.classes);
         if (res.ok) {
           const data = await res.json();
           // backend Class model uses `class_name` and `section` etc.
@@ -48,7 +49,7 @@ export default function Homework() {
             ratio: d.ratio || d.student_teacher_ratio || "",
           }));
           setClasses(normalized);
-          try { localStorage.setItem("classes", JSON.stringify(normalized)); } catch {}
+          try { localStorage.setItem("classes", JSON.stringify(normalized)); } catch { }
         } else {
           throw new Error(`Classes API returned ${res.status}`);
         }
@@ -60,10 +61,10 @@ export default function Homework() {
           const rawApp = localStorage.getItem("classes");
           if (rawApp) {
             const parsedApp = JSON.parse(rawApp) as any[];
-              const normalized: SchoolClass[] = parsedApp.map((d: any) => ({
-                id: d.id || d.classId || undefined,
-                name: d.className || d.name || "",
-                section: d.section || "",
+            const normalized: SchoolClass[] = parsedApp.map((d: any) => ({
+              id: d.id || d.classId || undefined,
+              name: d.className || d.name || "",
+              section: d.section || "",
               boardType: d.boardType || d.board_type || [],
               capacity: d.capacity ?? 0,
               maxSeats: d.maxSeats ?? d.max_seats ?? 0,
@@ -85,7 +86,7 @@ export default function Homework() {
           try {
             setClasses(JSON.parse(stored));
             return;
-          } catch {}
+          } catch { }
         }
 
         // Last fallback: bundled static
@@ -116,7 +117,7 @@ export default function Homework() {
     // Also fetch homeworks to compute counts per class (optional enhancement)
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}homeworks/`);
+        const res = await fetch(API_ENDPOINTS.school.homeworks);
         if (res.ok) {
           const hw = await res.json();
           const counts: Record<string | number, number> = {};
@@ -194,11 +195,11 @@ export default function Homework() {
                   const displayName = /^\d+$/.test(raw) ? `Class ${raw}` : raw || "Unnamed";
                   return (
                     <>
-                                  <h3 className="text-gray-700 font-semibold text-lg">{displayName}</h3>
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-sm text-gray-500">Section {cls.section}</span>
-                                    <span className="text-sm text-blue-600 font-medium">{homeworkCounts[cls.id ?? cls.name] || 0} homework(s)</span>
-                                  </div>
+                      <h3 className="text-gray-700 font-semibold text-lg">{displayName}</h3>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">Section {cls.section}</span>
+                        <span className="text-sm text-blue-600 font-medium">{homeworkCounts[cls.id ?? cls.name] || 0} homework(s)</span>
+                      </div>
                     </>
                   );
                 })()}

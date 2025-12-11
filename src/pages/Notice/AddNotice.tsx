@@ -1,7 +1,7 @@
 // AddNotice.tsx
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { API_BASE } from "../../api/notices";
+import { API_ENDPOINTS, buildApiUrl, SCHOOL_API_BASE } from "../../config/api";
 
 type Notice = {
   id: string;
@@ -72,7 +72,7 @@ export default function AddNotice() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch(API_BASE + 'classes/');
+        const res = await fetch(API_ENDPOINTS.school.classes);
         if (!res.ok) throw new Error('no classes');
         const data = await res.json();
         if (cancelled) return;
@@ -94,7 +94,7 @@ export default function AddNotice() {
               return;
             }
           }
-        } catch (e) {}
+        } catch (e) { }
 
         try {
           const rawStudents = localStorage.getItem("students");
@@ -105,7 +105,7 @@ export default function AddNotice() {
             setClassesList(classes as any);
             return;
           }
-        } catch (e) {}
+        } catch (e) { }
 
         setClassesList([]);
       }
@@ -121,7 +121,7 @@ export default function AddNotice() {
     const loadStudents = async () => {
       if (classId) {
         try {
-          const res = await fetch(API_BASE + `class/${classId}/students/`);
+          const res = await fetch(buildApiUrl(SCHOOL_API_BASE, 'class', classId, 'students/'));
           if (!res.ok) throw new Error('failed');
           const data = await res.json();
           if (cancelled) return;

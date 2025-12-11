@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { API_ENDPOINTS } from "../../config/api";
 
 type Student = {
   id: number;
@@ -26,9 +27,7 @@ export default function FeesMain() {
   useEffect(() => {
     // Try fetching real fee data from backend if available. This endpoint is optional
     // and may be implemented later. If unavailable, the page shows a friendly message.
-    const SCHOOL_API_BASE = (window as any).__SCHOOL_API_BASE__ || (window as any).REACT_APP_SCHOOL_API_BASE || "https://school-bos-backend.onrender.com/schoolApp";
-    const url = `${SCHOOL_API_BASE}/classes/`;
-    fetch(url)
+    fetch(API_ENDPOINTS.school.classes)
       .then((res) => {
         if (!res.ok) throw new Error("no classes API");
         return res.json();

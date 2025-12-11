@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { API_ENDPOINTS } from "../config/api";
 
 
 type FormState = {
@@ -66,7 +67,7 @@ function SignupForm() {
     };
 
     try {
-      const res = await fetch("https://school-bos-backend.onrender.com/Account/register/", {
+      const res = await fetch(API_ENDPOINTS.account.register, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -248,8 +249,8 @@ function SignupForm() {
           <p className="text-center text-gray-600 text-sm">
             Already have an account?{" "}
             <Link to="/login" className="text-blue-900 underline">
-  Log in
-</Link>
+              Log in
+            </Link>
           </p>
         </div>
       </div>

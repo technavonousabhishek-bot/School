@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUserPlus } from "react-icons/fa";
+import { API_ENDPOINTS, buildApiUrl } from "../../config/api";
 
 interface DocumentFile {
   name: string;
@@ -19,7 +20,7 @@ interface Teacher {
   classesHandled?: string;
   updatedAt?: string;
   department: string;
- // subjects?: string[];
+  // subjects?: string[];
   contact: string;
   gender: string;
   address: string;
@@ -42,7 +43,7 @@ export default function TeacherList() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const navigate = useNavigate();
 
-  const API_BASE = (window as any).__API_BASE__ || (window as any).REACT_APP_API_BASE || "https://school-bos-backend.onrender.com/Account";
+
 
   // Normalize teacher objects from backend/localStorage so UI can rely on consistent fields
   const normalizeTeacher = (t: any): Teacher => {
@@ -93,7 +94,7 @@ export default function TeacherList() {
       setError(null);
       try {
         // Try backend first
-        const res = await fetch(`${API_BASE}/teachers/`);
+        const res = await fetch(API_ENDPOINTS.account.teachers);
         if (res.ok) {
           const data = await res.json();
           // backend might return array or paginated {results: []}
@@ -142,9 +143,9 @@ export default function TeacherList() {
       // try backend delete first
       try {
         // try conventional delete endpoints: with /delete/ and without
-        let res = await fetch(`${API_BASE}/teachers/${id}/delete/`, { method: "DELETE" });
+        let res = await fetch(buildApiUrl(API_ENDPOINTS.account.teachers, id, 'delete/'), { method: "DELETE" });
         if (!res.ok && res.status !== 204) {
-          res = await fetch(`${API_BASE}/teachers/${id}/`, { method: "DELETE" });
+          res = await fetch(buildApiUrl(API_ENDPOINTS.account.teachers, `${id}/`), { method: "DELETE" });
         }
         if (res.ok || res.status === 204) {
           const updated = teachers.filter((t) => t.id !== id);
@@ -165,7 +166,7 @@ export default function TeacherList() {
     })();
   };
 
-  
+
 
   const handleDownload = (file: DocumentFile) => {
     try {
@@ -197,9 +198,9 @@ export default function TeacherList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-    <FaUserPlus className="text-blue-600" />
-    Teacher List
-  </h2>
+          <FaUserPlus className="text-blue-600" />
+          Teacher List
+        </h2>
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/add-teacher")}
@@ -207,7 +208,7 @@ export default function TeacherList() {
           >
             + Add Teacher
           </button>
-          
+
         </div>
       </div>
 
@@ -270,7 +271,7 @@ export default function TeacherList() {
                   }</td>
                   <td className="px-6 py-3">
                     <div className="font-medium text-gray-800">{teacher.department}</div>
-                   
+
                   </td>
                   <td className="px-6 py-3">{teacher.qualifications || "-"}</td>
                   <td className="px-6 py-3 flex justify-center gap-3 text-lg">
@@ -309,7 +310,7 @@ export default function TeacherList() {
       {/* Modal */}
       {selectedTeacher && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-xl relative">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-xl relative">
             <button
               onClick={() => setSelectedTeacher(null)}
               className="absolute top-3 right-3 text-gray-600 hover:text-black text-xl"

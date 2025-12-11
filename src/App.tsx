@@ -79,6 +79,7 @@ import ExamsPage from "./pages/Exams/ExamsPage";
 import MarksEntryPage from "./pages/Exams/MarksEntryPage";
 import ClassSelectPage from "./pages/Exams/ClassSelectPage";
 import SelectExamPage from "./pages/Exams/SelectExamPage";
+import ResultsPage from "./pages/Exams/ResultsPage";
 
 
 
@@ -105,116 +106,117 @@ function App() {
           <Route
             path="/*"
             element=
-              {
-                <ExamStoreProvider>
-                  <div className="flex h-screen overflow-hidden bg-gray-50">
-                    {/* global sidebar (TeacherSidebar was removed) */}
-                    <Sidebar userRole={userRole} userName={userName} userEmail={userEmail} />
+            {
+              <ExamStoreProvider>
+                <div className="flex h-screen overflow-hidden bg-gray-50">
+                  {/* global sidebar (TeacherSidebar was removed) */}
+                  <Sidebar userRole={userRole} userName={userName} userEmail={userEmail} />
 
-                    <div className="flex-1 overflow-auto">
-                      <Routes>
-                    {/* 🏠 Dashboard */}
-                    <Route path="/" element={<Dashboard />} />
-                    
-                  
-
-                    {/* 🏫 Classes */}
-                    <Route path="/classes" element={<ClassesDashboard />} />
-                    <Route path="/add-class" element={<AddEditClass />} />
-                    <Route path="/edit-class/:id" element={<AddEditClass />} />
-                    <Route path="/view-class/:id" element={<ClassDetails />} />
-                    <Route path="/classes/:id" element={<ClassDetails />} />
-
-                    {/* 📘 Homework */}
-                    <Route path="/homework" element={<Homework />} />
-                    <Route path="/homework/:className" element={<HomeworkDetails />} />
-
-                    {/* 🗓 Attendance */}
-                    <Route path="/attendance" element={<AttendanceLanding />} />
-                    <Route path="/attendance/students" element={<AttendanceMain />} />
-                    <Route path="/attendance/teachers" element={<TeachersMain />} />
-                    <Route
-                      path="/attendance/:className/students"
-                      element={<AttendanceStudentList />}
-                    />
-                    <Route
-                      path="/attendance/:className/teachers"
-                      element={<AttendanceTeacherList />}
-                    />
-
-                    {/* 💰 Fees */}
-                    <Route path="/fees" element={<FeesMain />} />
-                    <Route path="/fees/:className" element={<FeesStudentList />} />
-
-                    {/* 📢 Notice */}
-                    <Route path="/notice" element={<NoticeMain />} />
-                    <Route path="/notice/students" element={<NoticeStudents />} />
-                    <Route
-                      path="/notice/students/:className"
-                      element={<NoticeClassDetails />}
-                    />
-                    <Route path="/notice/teachers" element={<NoticeTeachers />} />
-                    <Route path="/notice/add" element={<AddNotice />} />
-
-                    {/* 📚 Library */}
-                    <Route path="/library" element={<LibraryDashboard />} />
-                    <Route path="/library/issue" element={<IssueBook />} />
-                    <Route path="/library/return" element={<ReturnBook />} />
-                    <Route path="/library/issued-books" element={<IssuedBooks />} />
-                    <Route path="/library/issued" element={<IssuedBooks />} />
-
-                    {/* 🚌 Transport */}
-                    <Route path="/transport" element={<TransportMain />} />
-                    <Route path="/transport/add-bus" element={<AddBus />} />
-                    <Route path="/transport/route/:busId" element={<BusRouteDetails />} />
-
-                    {/* ⏰ Timetable */}
-                    <Route path="/timetable" element={<TimetableMain />} />
-
-                    {/* 🧮 Exams & Results Section */}
-                   
+                  <div className="flex-1 overflow-auto">
+                    <Routes>
+                      {/* 🏠 Dashboard */}
+                      <Route path="/" element={<Dashboard />} />
 
 
- {/* Student */}
-                    <Route path="/students" element={< StudentList />} />
-                    <Route path="/add-student" element={< AddStudent />} />
-                    <Route path="/edit-student/:id" element={<AddStudent />} />
-                      
+
+                      {/* 🏫 Classes */}
+                      <Route path="/classes" element={<ClassesDashboard />} />
+                      <Route path="/add-class" element={<AddEditClass />} />
+                      <Route path="/edit-class/:id" element={<AddEditClass />} />
+                      <Route path="/view-class/:id" element={<ClassDetails />} />
+                      <Route path="/classes/:id" element={<ClassDetails />} />
+
+                      {/* 📘 Homework */}
+                      <Route path="/homework" element={<Homework />} />
+                      <Route path="/homework/:className" element={<HomeworkDetails />} />
+
+                      {/* 🗓 Attendance */}
+                      <Route path="/attendance" element={<AttendanceLanding />} />
+                      <Route path="/attendance/students" element={<AttendanceMain />} />
+                      <Route path="/attendance/teachers" element={<TeachersMain />} />
+                      <Route
+                        path="/attendance/:className/students"
+                        element={<AttendanceStudentList />}
+                      />
+                      <Route
+                        path="/attendance/:className/teachers"
+                        element={<AttendanceTeacherList />}
+                      />
+
+                      {/* 💰 Fees */}
+                      <Route path="/fees" element={<FeesMain />} />
+                      <Route path="/fees/:className" element={<FeesStudentList />} />
+
+                      {/* 📢 Notice */}
+                      <Route path="/notice" element={<NoticeMain />} />
+                      <Route path="/notice/students" element={<NoticeStudents />} />
+                      <Route
+                        path="/notice/students/:className"
+                        element={<NoticeClassDetails />}
+                      />
+                      <Route path="/notice/teachers" element={<NoticeTeachers />} />
+                      <Route path="/notice/add" element={<AddNotice />} />
+
+                      {/* 📚 Library */}
+                      <Route path="/library" element={<LibraryDashboard />} />
+                      <Route path="/library/issue" element={<IssueBook />} />
+                      <Route path="/library/return" element={<ReturnBook />} />
+                      <Route path="/library/issued-books" element={<IssuedBooks />} />
+                      <Route path="/library/issued" element={<IssuedBooks />} />
+
+                      {/* 🚌 Transport */}
+                      <Route path="/transport" element={<TransportMain />} />
+                      <Route path="/transport/add-bus" element={<AddBus />} />
+                      <Route path="/transport/route/:busId" element={<BusRouteDetails />} />
+
+                      {/* ⏰ Timetable */}
+                      <Route path="/timetable" element={<TimetableMain />} />
+
+                      {/* 🧮 Exams & Results Section */}
+
+
+
+                      {/* Student */}
+                      <Route path="/students" element={< StudentList />} />
+                      <Route path="/add-student" element={< AddStudent />} />
+                      <Route path="/edit-student/:id" element={<AddStudent />} />
+
 
 
                       {/* Teacher management */}
-                   <Route path="/add-teacher" element={<AddTeacher />} />
-                    <Route path="/edit-teacher/:id" element={<AddTeacher />} />
-                    <Route path="/teachers" element={<TeacherList />} />
+                      <Route path="/add-teacher" element={<AddTeacher />} />
+                      <Route path="/edit-teacher/:id" element={<AddTeacher />} />
+                      <Route path="/teachers" element={<TeacherList />} />
 
-                    {/* exams and result routes */}
+                      {/* exams and result routes */}
 
-               <Route path="/exams-results" element={<ExamsResultsHome />} />
-                    <Route path="/manage-exams" element={<ManageExams />} />
-                    <Route path="/manage-results" element={<ManageResults />} />
-
-
+                      <Route path="/exams-results" element={<ExamsResultsHome />} />
+                      <Route path="/manage-exams" element={<ManageExams />} />
+                      <Route path="/manage-results" element={<ManageResults />} />
 
 
-    {/*  Teacher dashboard */ }
-
-                         <Route path="/teacher" element={<TeacherDasboard />} />
-
-     {/*  Exam & Grades */ }
-                          <Route path="/exams" element={<ExamsPage />} />
-                          <Route path="/exams/add-exams" element={<SelectExamPage />} />
-                          <Route path="/exams/add-marks/marks-entry" element={<MarksEntryPage />} />
-                          <Route path="/exams/add-exams/select-class" element={<ClassSelectPage />} />
-                          
-                          
 
 
-           
-                      </Routes>
-                    </div>
+                      {/*  Teacher dashboard */}
+
+                      <Route path="/teacher" element={<TeacherDasboard />} />
+
+                      {/*  Exam & Grades */}
+                      <Route path="/exams" element={<ExamsPage />} />
+                      <Route path="/exams/add-exams" element={<SelectExamPage />} />
+                      <Route path="/exams/add-marks/marks-entry" element={<MarksEntryPage />} />
+                      <Route path="/exams/add-exams/select-class" element={<ClassSelectPage />} />
+                      <Route path="/exams/results" element={<ResultsPage />} />
+
+
+
+
+
+                    </Routes>
                   </div>
-                </ExamStoreProvider>
-              }
+                </div>
+              </ExamStoreProvider>
+            }
           />
         ) : (
           // 🚪 Redirect to login if not logged in

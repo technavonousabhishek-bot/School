@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUserPlus } from "react-icons/fa";
+import { API_ENDPOINTS, getMediaUrl } from "../../config/api";
 
 interface DocumentFile {
   name: string;
@@ -41,7 +42,7 @@ export default function StudentList() {
   const navigate = useNavigate();
 
   const userRole = localStorage.getItem("userRole") || "teacher";
-  const API_BASE = "https://school-bos-backend.onrender.com";
+
 
   // Always return a consistent HeadersInit object
   const getAuthHeaders = (): HeadersInit => {
@@ -54,7 +55,7 @@ export default function StudentList() {
     if (!img) return undefined;
     if (typeof img === "string") {
       if (img.startsWith("data:") || img.startsWith("http://") || img.startsWith("https://")) return img;
-      return `${API_BASE}${img}`; // relative path from backend like /media/...
+      return getMediaUrl(img); // relative path from backend like /media/...
     }
     if (typeof img === "object" && img.data) return img.data;
     return undefined;
@@ -70,7 +71,7 @@ export default function StudentList() {
         ...getAuthHeaders(),
       };
 
-      const res = await fetch(`${API_BASE}/Account/students/`, {
+      const res = await fetch(API_ENDPOINTS.account.students, {
         method: "GET",
         headers,
       });
@@ -129,9 +130,9 @@ export default function StudentList() {
     return matchesNameOrEnroll && matchesClass;
   });
 
- 
 
-    
+
+
 
   // Delete student via API (and update local UI)
   const handleDelete = async (id: number) => {
@@ -144,7 +145,7 @@ export default function StudentList() {
         ...getAuthHeaders(),
       };
 
-      const res = await fetch(`${API_BASE}/Account/students/${id}/delete/`, {
+      const res = await fetch(`${API_ENDPOINTS.account.students}${id}/delete/`, {
         method: "DELETE",
         headers,
       });
@@ -176,8 +177,8 @@ export default function StudentList() {
       const href = file.data.startsWith("data:")
         ? file.data
         : file.data.startsWith("http")
-        ? file.data
-        : `${API_BASE}${file.data}`;
+          ? file.data
+          : getMediaUrl(file.data);
       const link = document.createElement("a");
       link.href = href;
       link.download = file.name || "document";
@@ -241,7 +242,7 @@ export default function StudentList() {
           ))}
         </select>
 
-       
+
       </div>
 
       {/* Loading / Error */}
@@ -280,12 +281,12 @@ export default function StudentList() {
                       👁 View
                     </button>
 
-                   <button
-  onClick={() => navigate(`/edit-student/${student.id}`)}
-  className="text-blue-600 hover:text-blue-800"
->
-  ✏️ Edit
-</button>
+                    <button
+                      onClick={() => navigate(`/edit-student/${student.id}`)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      ✏️ Edit
+                    </button>
 
                     {userRole === "admin" && (
                       <button
@@ -401,7 +402,7 @@ export default function StudentList() {
                           onClick={() =>
                             handleImageDownload(
                               (selectedStudent.profile_picture as any).data ||
-                                (selectedStudent.profile_picture as any),
+                              (selectedStudent.profile_picture as any),
                               (selectedStudent.profile_picture as any)?.name || selectedStudent.student_name
                             )
                           }

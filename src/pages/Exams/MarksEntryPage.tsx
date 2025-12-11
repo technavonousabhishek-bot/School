@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { marksApi } from "../../api/exams";
 
-const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
+import { API_BASE_URL } from "../../config/api";
 
 type StudentType = {
   id: number;
@@ -10,87 +11,172 @@ type StudentType = {
   enrollmentNo?: string;
 };
 
+type SubjectType = {
+  name: string;
+  id: number;
+};
+
 export default function MarksEntryPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { id, className, section, exam } = (location.state || {}) as {
+  const { id, className, section, exam, examId } = (location.state || {}) as {
     id: number;
     className: string;
     section: string;
     exam: string;
+    examId: string;
   };
 
   const [students, setStudents] = useState<StudentType[]>([]);
-  const [subjects, setSubjects] = useState<string[]>([]);
-  const [marks, setMarks] = useState<Record<number, Record<string, number>>>({});
+  const [subjects, setSubjects] = useState<SubjectType[]>([]);
+  const [marks, setMarks] = useState<Record<number, Record<number, number>>>({});
+  const [maxMarks, setMaxMarks] = useState<Record<number, number>>({});
+  const [saving, setSaving] = useState(false);
+  const [topPerformers, setTopPerformers] = useState<any[]>([]);
 
-  const [userTotalMarks, setUserTotalMarks] = useState<number>(0);
+
 
   useEffect(() => {
     if (!id) return;
 
     const fetchData = async () => {
       try {
-        const resStudents = await axios.get(`${API_BASE}class/${id}/students/`);
+        // Fetch students
+        const resStudents = await axios.get(`${API_BASE_URL}/schoolApp/class/${id}/students/`);
         const studentsData = (resStudents.data || []).map((s: any) => ({
           id: s.id,
-          enrollmentNo: s.enrollment_no ?? s.id,
+          enrollmentNo: s.enrollmentNo ?? s.enrollment_no ?? s.id,
           name: s.name ?? s.user?.username ?? "",
         }));
         setStudents(studentsData);
 
-        const resClass = await axios.get(`${API_BASE}classes/${id}/`);
-        const subjectList = resClass.data.subjects || [];
+        // Fetch all subjects to get real IDs
+        const resAllSubjects = await axios.get(`${API_BASE_URL}/schoolApp/subjects/`);
+        const allSubjects = resAllSubjects.data || [];
+
+        // Fetch class to get subjects list (names)
+        const resClass = await axios.get(`${API_BASE_URL}/schoolApp/classes/${id}/`);
+        const classSubjectNames = resClass.data.subjects || [];
+
+        // Map class subject names to real subject objects
+        const subjectList = classSubjectNames.map((subName: string) => {
+          const foundSub = allSubjects.find((s: any) => s.subject === subName);
+          return {
+            name: subName,
+            id: foundSub ? foundSub.id : 0, // Use real ID or 0 if not found (should be handled)
+          };
+        }).filter((s: SubjectType) => s.id !== 0); // Filter out subjects that weren't found in DB
+
         setSubjects(subjectList);
 
-        const initialMarks: Record<number, Record<string, number>> = {};
+        // Initialize marks
+        const initialMarks: Record<number, Record<number, number>> = {};
+        const initialMaxMarks: Record<number, number> = {};
+
         studentsData.forEach((stu: StudentType) => {
           initialMarks[stu.id] = {};
-          subjectList.forEach((sub: string) => {
-            initialMarks[stu.id][sub] = 0;
+          subjectList.forEach((sub: SubjectType) => {
+            initialMarks[stu.id][sub.id] = 0;
+            initialMaxMarks[sub.id] = 100; // Default max marks
           });
         });
 
         setMarks(initialMarks);
+        setMaxMarks(initialMaxMarks);
+
+        // Fetch existing marks if available
+        if (examId) {
+          try {
+            await marksApi.getMarks({ exam: Number(examId), class: id });
+            // TODO: Populate existing marks if needed
+          } catch (err) {
+            console.log("No existing marks found");
+          }
+        }
       } catch (e) {
-        console.error("Failed", e);
+        console.error("Failed to fetch data:", e);
+        alert("Failed to load data. Please try again.");
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, examId]);
 
-  const handleMarkChange = (studentId: number, subject: string, value: number) => {
+  const handleMarkChange = (studentId: number, subjectId: number, value: number) => {
     setMarks((prev) => ({
       ...prev,
-      [studentId]: { ...prev[studentId], [subject]: value },
+      [studentId]: { ...prev[studentId], [subjectId]: value },
     }));
   };
 
-  // ⭐ AUTO CALCULATE TOTAL FOR EACH STUDENT
+  const handleMaxMarksChange = (subjectId: number, value: number) => {
+    setMaxMarks((prev) => ({
+      ...prev,
+      [subjectId]: value,
+    }));
+  };
+
   const getAutoTotal = (studentId: number) => {
-    return subjects.reduce((sum, sub) => sum + (marks[studentId]?.[sub] || 0), 0);
+    return subjects.reduce((sum, sub) => sum + (marks[studentId]?.[sub.id] || 0), 0);
+  };
+
+  const getTotalMaxMarks = () => {
+    return subjects.reduce((sum, sub) => sum + (maxMarks[sub.id] || 0), 0);
   };
 
   const handleSave = async () => {
-    try {
-      const payload = students.map((stu) => ({
-        studentId: stu.id,
-        obtained: marks[stu.id],
-        totalMarks: {
-          auto: getAutoTotal(stu.id),
-          user: userTotalMarks,
-        },
-      }));
+    if (!examId) {
+      alert("No exam selected. Please go back and select an exam.");
+      return;
+    }
 
-      console.log("Saving marks", payload);
-      alert("Marks saved!");
-    } catch (e) {
-      console.error("Failed to save", e);
-      alert("Failed");
+    try {
+      setSaving(true);
+
+      // Prepare marks data for bulk entry
+      const marksData: Array<{
+        student: number;
+        subject: number;
+        marks_obtained: number;
+        max_marks: number;
+      }> = [];
+
+      students.forEach((student) => {
+        subjects.forEach((subject) => {
+          marksData.push({
+            student: student.id,
+            subject: subject.id,
+            marks_obtained: marks[student.id]?.[subject.id] || 0,
+            max_marks: maxMarks[subject.id] || 100,
+          });
+        });
+      });
+
+      await marksApi.bulkCreateMarks({
+        exam: Number(examId),
+        class_name: id,
+        marks: marksData,
+      });
+
+      // Fetch top performers
+      const topPerf = await marksApi.getTopPerformers({
+        exam: Number(examId),
+        class: id,
+        limit: 3,
+      });
+      setTopPerformers(topPerf);
+
+      alert("Marks saved successfully!");
+    } catch (e: any) {
+      console.error("Failed to save marks:", e);
+      alert(e.response?.data?.error || "Failed to save marks. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
+
+
 
   if (!id) return <p className="p-6 text-red-500">No class selected.</p>;
 
@@ -100,6 +186,7 @@ export default function MarksEntryPage() {
         <h2 className="text-3xl font-bold text-gray-800">
           {className} - {section} Marks Entry
         </h2>
+
       </div>
 
       {exam && (
@@ -110,18 +197,25 @@ export default function MarksEntryPage() {
         </div>
       )}
 
-      {/* User total marks input */}
-      <div className="mb-4 flex gap-4">
-        <div>
-          <label className="font-medium text-gray-700">Total Marks</label>
-          <input
-            type="number"
-            min={0}
-            value={userTotalMarks}
-            onChange={(e) => setUserTotalMarks(Number(e.target.value))}
-            className="w-40 mt-1 px-3 py-2 border rounded"
-            placeholder="e.g. 100"
-          />
+      {/* Max marks input for each subject */}
+      <div className="mb-6 bg-white p-4 rounded-lg shadow">
+        <h3 className="font-semibold mb-3">Set Maximum Marks for Each Subject</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {subjects.map((sub) => (
+            <div key={sub.id}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {sub.name}
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={maxMarks[sub.id] || 100}
+                onChange={(e) => handleMaxMarksChange(sub.id, Number(e.target.value))}
+                className="w-full px-3 py-2 border rounded"
+                placeholder="Max marks"
+              />
+            </div>
+          ))}
         </div>
       </div>
 
@@ -134,7 +228,9 @@ export default function MarksEntryPage() {
                 <th className="px-6 py-3">Name</th>
 
                 {subjects.map((sub) => (
-                  <th key={sub} className="px-6 py-3">{sub} (Obtained)</th>
+                  <th key={sub.id} className="px-6 py-3">
+                    {sub.name} (/{maxMarks[sub.id] || 100})
+                  </th>
                 ))}
 
                 <th className="px-6 py-3">Total</th>
@@ -148,22 +244,22 @@ export default function MarksEntryPage() {
                   <td className="px-6 py-3">{stu.name}</td>
 
                   {subjects.map((sub) => (
-                    <td key={sub} className="px-3 py-1">
+                    <td key={sub.id} className="px-3 py-1">
                       <input
                         type="number"
                         min={0}
-                        value={marks[stu.id]?.[sub] ?? 0}
+                        max={maxMarks[sub.id] || 100}
+                        value={marks[stu.id]?.[sub.id] ?? 0}
                         onChange={(e) =>
-                          handleMarkChange(stu.id, sub, Number(e.target.value))
+                          handleMarkChange(stu.id, sub.id, Number(e.target.value))
                         }
                         className="w-full px-2 py-1 border rounded"
                       />
                     </td>
                   ))}
 
-                  {/* AUTO TOTAL CALCULATION */}
                   <td className="px-6 py-2 font-semibold text-blue-700">
-                    {getAutoTotal(stu.id)} / {userTotalMarks}
+                    {getAutoTotal(stu.id)} / {getTotalMaxMarks()}
                   </td>
                 </tr>
               ))}
@@ -184,43 +280,36 @@ export default function MarksEntryPage() {
 
         <button
           onClick={handleSave}
-          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+          disabled={saving}
+          className={`px-6 py-2 rounded ${saving
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-green-600 hover:bg-green-700"
+            } text-white`}
         >
-          Save
+          {saving ? "Saving..." : "Save Marks"}
         </button>
       </div>
 
       {/* Top 3 Toppers */}
-{students.length > 0 && (
-  <div className="mt-6 p-4 bg-yellow-50 rounded-xl shadow border">
-    <h3 className="text-xl font-bold mb-3 text-yellow-800">🏆 Top 3 Toppers</h3>
+      {topPerformers.length > 0 && (
+        <div className="mt-6 p-4 bg-yellow-50 rounded-xl shadow border">
+          <h3 className="text-xl font-bold mb-3 text-yellow-800">🏆 Top 3 Toppers</h3>
 
-    {students
-      .map((stu) => {
-        const obtainedSum = Object.values(marks[stu.id] || {}).reduce(
-          (a, b) => a + b,
-          0
-        );
-        return { ...stu, totalObtained: obtainedSum };
-      })
-      .sort((a, b) => b.totalObtained - a.totalObtained)
-      .slice(0, 3)
-      .map((stu, index) => (
-        <div
-          key={stu.id}
-          className="flex justify-between items-center bg-white p-3 mb-2 rounded-lg shadow-sm border"
-        >
-          <span className="font-bold text-lg text-gray-700">
-            #{index + 1}
-          </span>
-          <span className="font-medium text-gray-800">{stu.name}</span>
-          <span className="font-semibold text-blue-700">
-            {stu.totalObtained} / {userTotalMarks}
-          </span>
+          {topPerformers.map((performer, index) => (
+            <div
+              key={performer.student_id}
+              className="flex justify-between items-center bg-white p-3 mb-2 rounded-lg shadow-sm border"
+            >
+              <span className="font-bold text-lg text-gray-700">#{index + 1}</span>
+              <span className="font-medium text-gray-800">{performer.student_name}</span>
+              <span className="font-semibold text-blue-700">
+                {performer.total_obtained} / {performer.total_max} ({performer.percentage}%)
+              </span>
+            </div>
+          ))}
         </div>
-      ))}
-  </div>
-)}
+      )}
+
 
     </div>
   );

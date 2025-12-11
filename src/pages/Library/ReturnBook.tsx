@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "../../api/notices";
+import { API_ENDPOINTS, buildApiUrl } from "../../config/api";
 
 interface IssuedBook {
   id: number;
@@ -21,7 +21,7 @@ export default function ReturnBook() {
 
   const load = () => {
     setLoading(true);
-    fetch(API_BASE + "issued/")
+    fetch(API_ENDPOINTS.school.issued)
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return res.json();
@@ -36,7 +36,7 @@ export default function ReturnBook() {
   }, []);
 
   const handleReturn = (id: number) => {
-    fetch(API_BASE + `return/${id}/`, { method: "PUT" })
+    fetch(buildApiUrl(API_ENDPOINTS.school.return, `${id}/`), { method: "PUT" })
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return res.json();

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "../../api/notices";
+import { API_ENDPOINTS, buildApiUrl, SCHOOL_API_BASE } from "../../config/api";
 
 interface Book {
   id: number;
@@ -53,7 +53,7 @@ export default function IssueBook() {
     // fetch issued books
     const fetchIssued = async () => {
       try {
-        const r = await fetch(API_BASE + 'issued/');
+        const r = await fetch(API_ENDPOINTS.school.issued);
         if (!r.ok) throw new Error(await r.text());
         const data = await r.json();
         setIssuedBooks(data);
@@ -64,7 +64,7 @@ export default function IssueBook() {
 
     const fetchBooks = async () => {
       try {
-        const r = await fetch(API_BASE + 'books/');
+        const r = await fetch(API_ENDPOINTS.school.books);
         if (!r.ok) throw new Error(await r.text());
         const data = await r.json();
         setBooks(data);
@@ -75,7 +75,7 @@ export default function IssueBook() {
 
     const fetchClasses = async () => {
       try {
-        const r = await fetch(API_BASE + 'classes/');
+        const r = await fetch(API_ENDPOINTS.school.classes);
         if (!r.ok) throw new Error(await r.text());
         const data = await r.json();
         setClasses(data);
@@ -126,7 +126,7 @@ export default function IssueBook() {
       due_date: dueDate,
     };
 
-    fetch(API_BASE + "issue/", {
+    fetch(API_ENDPOINTS.school.issue, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -138,13 +138,13 @@ export default function IssueBook() {
       .then(async () => {
         // refresh issued list and books from backend to keep consistent
         try {
-          const issuedRes = await fetch(API_BASE + 'issued/');
+          const issuedRes = await fetch(API_ENDPOINTS.school.issued);
           if (issuedRes.ok) setIssuedBooks(await issuedRes.json());
         } catch (e) {
           console.warn('Could not refresh issued list:', e);
         }
         try {
-          const booksRes = await fetch(API_BASE + 'books/');
+          const booksRes = await fetch(API_ENDPOINTS.school.books);
           if (booksRes.ok) setBooks(await booksRes.json());
         } catch (e) {
           console.warn('Could not refresh books list:', e);
@@ -165,7 +165,7 @@ export default function IssueBook() {
       setStudents([]);
       return;
     }
-    fetch(API_BASE + `class/${selectedClassId}/students/`)
+    fetch(buildApiUrl(SCHOOL_API_BASE, 'class', selectedClassId, 'students/'))
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return res.json();
@@ -226,9 +226,9 @@ export default function IssueBook() {
             <option value="">-- Choose Book --</option>
             {books.length > 0 ? (
               books.map((book) => (
-                  <option key={book.id} value={book.id}>
-                    {book.title} ({(book.availableCopies ?? book.available_copies ?? 0)} available)
-                  </option>
+                <option key={book.id} value={book.id}>
+                  {book.title} ({(book.availableCopies ?? book.available_copies ?? 0)} available)
+                </option>
               ))
             ) : (
               <option disabled>No books available</option>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_ENDPOINTS, buildApiUrl } from "../../config/api";
 
 interface DocumentFile {
   name: string;
@@ -33,7 +34,7 @@ interface StudentForm {
   language_preference: string;
 }
 
-const API_BASE = "https://school-bos-backend.onrender.com";
+
 
 export default function AddStudent() {
   const navigate = useNavigate();
@@ -107,7 +108,7 @@ export default function AddStudent() {
     const loadStudentFromApi = async (studentId: string) => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/Account/students/${studentId}/`, {
+        const res = await fetch(buildApiUrl(API_ENDPOINTS.account.students, studentId), {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -167,7 +168,7 @@ export default function AddStudent() {
     // Load classes list for class dropdown
     const loadClasses = async () => {
       try {
-        const res = await fetch(`${API_BASE}/schoolApp/classes/`, {
+        const res = await fetch(API_ENDPOINTS.school.classes, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -297,7 +298,7 @@ export default function AddStudent() {
       fd.append("documents_meta", JSON.stringify(docsMeta));
 
       // Decide endpoint/method
-      const url = isEditMode && id ? `${API_BASE}/Account/students/${id}/update/` : `${API_BASE}/Account/students/create/`;
+      const url = isEditMode && id ? buildApiUrl(API_ENDPOINTS.account.students, id, 'update') : buildApiUrl(API_ENDPOINTS.account.students, 'create');
       const method = isEditMode && id ? "PUT" : "POST";
 
       // Build headers: do NOT set Content-Type for multipart; browser will set boundary
@@ -384,14 +385,14 @@ export default function AddStudent() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold mb-4">{isEditMode ? "Edit Student" : "Add Student"}</h2>
         <button
-    type="button"
-    onClick={() => navigate("/students")}
-    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg"
-  >
-    Back
-  </button>
+          type="button"
+          onClick={() => navigate("/students")}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg"
+        >
+          Back
+        </button>
       </div>
-      
+
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <input name="student_name" value={formData.student_name} onChange={handleChange} placeholder="Student Name" className="border rounded-lg px-4 py-2" required />

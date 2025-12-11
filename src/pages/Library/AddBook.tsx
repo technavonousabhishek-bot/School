@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE } from "../../api/notices";
+import { API_ENDPOINTS } from "../../config/api";
 
 type Book = {
   id: number;
@@ -42,7 +42,7 @@ export default function AddBook() {
       available_copies: parseInt(newBook.totalCopies, 10),
     };
 
-    fetch(API_BASE + "books/", {
+    fetch(API_ENDPOINTS.school.books, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -63,7 +63,7 @@ export default function AddBook() {
 
   useEffect(() => {
     // load books from backend
-    fetch(API_BASE + "books/")
+    fetch(API_ENDPOINTS.school.books)
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return res.json();

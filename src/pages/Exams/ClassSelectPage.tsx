@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
-const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
+import { API_ENDPOINTS } from "../../config/api";
 
 type ClassType = {
   id: number;
@@ -14,7 +14,9 @@ export default function SelectClassPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const selectedExam = queryParams.get("exam") || ""; // receive exam from URL
+  const selectedExamId = queryParams.get("exam") || "";
+  const selectedExamName = queryParams.get("examName") || "";
+
 
   const [classes, setClasses] = useState<ClassType[]>([]);
   const [selectedClass, setSelectedClass] = useState<ClassType | null>(null);
@@ -22,7 +24,7 @@ export default function SelectClassPage() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const res = await axios.get(`${API_BASE}classes/`);
+        const res = await axios.get(API_ENDPOINTS.school.classes);
         setClasses(res.data);
       } catch (e) {
         console.error("Failed to fetch classes", e);
@@ -39,7 +41,8 @@ export default function SelectClassPage() {
         id: selectedClass.id,
         className: selectedClass.class_name,
         section: selectedClass.section || "",
-        exam: selectedExam, // pass selected exam
+        exam: selectedExamName,
+        examId: selectedExamId,
       },
     });
   };
@@ -57,15 +60,15 @@ export default function SelectClassPage() {
           onClick={handleBack}
           className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg"
         >
-        Back
+          Back
         </button>
       </div>
 
       {/* Selected Exam */}
-      {selectedExam && (
+      {selectedExamName && (
         <div className="mb-4 p-4 bg-blue-100 border-l-4 border-blue-500 rounded-lg max-w-lg">
           <p className="font-medium text-gray-800">
-            Selected Exam: <span className="font-semibold">{selectedExam}</span>
+            Selected Exam: <span className="font-semibold">{selectedExamName}</span>
           </p>
         </div>
       )}
@@ -83,11 +86,10 @@ export default function SelectClassPage() {
             <div
               key={cls.id}
               onClick={() => setSelectedClass(cls)}
-              className={`p-6 rounded-lg cursor-pointer border transition-all ${
-                selectedClass?.id === cls.id
-                  ? "bg-blue-600 text-white border-blue-700"
-                  : "bg-white border-gray-300 hover:shadow-md"
-              }`}
+              className={`p-6 rounded-lg cursor-pointer border transition-all ${selectedClass?.id === cls.id
+                ? "bg-blue-600 text-white border-blue-700"
+                : "bg-white border-gray-300 hover:shadow-md"
+                }`}
             >
               <p className="text-lg font-semibold">{fullClassName}</p>
             </div>
@@ -96,13 +98,13 @@ export default function SelectClassPage() {
       </div>
 
       <div className="mt-4 flex justify-end">
-  <button
-    onClick={handleNext}
-    className="bg-blue-600 text-white px-8 py-2 rounded-md hover:bg-blue-700"
-  >
-    Next
-  </button>
-</div>
+        <button
+          onClick={handleNext}
+          className="bg-blue-600 text-white px-8 py-2 rounded-md hover:bg-blue-700"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

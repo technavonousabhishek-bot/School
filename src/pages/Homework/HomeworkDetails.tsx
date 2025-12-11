@@ -2,6 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { HiOutlineShare } from "react-icons/hi";
+import { API_ENDPOINTS, buildApiUrl, SCHOOL_API_BASE } from "../../config/api";
 
 interface HomeworkItem {
   title?: string;
@@ -46,7 +47,7 @@ export default function HomeworkDetails() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const storageKey = "homework_data_v1";
-  const API_BASE = "https://school-bos-backend.onrender.com/schoolApp/";
+
 
   // load students list — prefer backend for students of a class, fall back to localStorage
   useEffect(() => {
@@ -63,7 +64,7 @@ export default function HomeworkDetails() {
 
       // Try to find class id from backend
       try {
-        const clsRes = await fetch(`${API_BASE}classes/`);
+        const clsRes = await fetch(API_ENDPOINTS.school.classes);
         if (clsRes.ok) {
           const clsData = await clsRes.json();
           const found = (clsData || []).find((c: any) => (c.class_name === namePart || c.class_name === namePart.replace(/^Class\s*/i, '')) && (sectionPart ? String(c.section) === String(sectionPart) : true));
@@ -71,7 +72,7 @@ export default function HomeworkDetails() {
             setClassId(found.id);
             // fetch students for class via class students api
             try {
-              const stRes = await fetch(`${API_BASE}class/${found.id}/students/`);
+              const stRes = await fetch(buildApiUrl(SCHOOL_API_BASE, 'class', found.id, 'students/'));
               if (stRes.ok) {
                 const st = await stRes.json();
                 const mapped = (st || []).map((s: any) => ({ id: s.id, admissionNo: s.enrollment_no ?? s.id, name: s.name ?? s.user?.username ?? '', class: namePart, section: sectionPart || '' }));
@@ -111,7 +112,7 @@ export default function HomeworkDetails() {
     const load = async () => {
       if (classId) {
         try {
-          const res = await fetch(`${API_BASE}homeworks/?classroom=${classId}`);
+          const res = await fetch(`${API_ENDPOINTS.school.homeworks}?classroom=${classId}`);
           if (res.ok) {
             const data = await res.json();
             // map backend homework items to local HomeworkItem shape
@@ -225,7 +226,7 @@ export default function HomeworkDetails() {
           fd.append("file", fileObj);
         }
 
-        const res = await fetch(`${API_BASE}homeworks/`, {
+        const res = await fetch(API_ENDPOINTS.school.homeworks, {
           method: 'POST',
           body: fd,
         });
@@ -329,16 +330,16 @@ export default function HomeworkDetails() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-     <div className="flex items-center justify-between mb-4">
-  <h2 className="text-2xl font-bold">Homework for {displayClassTitle}</h2>
-  
-  <button
-    onClick={() => navigate("/homework")}
-    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
-  >
-    Back to Classes
-  </button>
-</div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Homework for {displayClassTitle}</h2>
+
+        <button
+          onClick={() => navigate("/homework")}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+        >
+          Back to Classes
+        </button>
+      </div>
 
 
       {/* Assign New Homework Section */}
@@ -494,22 +495,22 @@ export default function HomeworkDetails() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                          <div className="font-medium text-gray-800">
-                            {hw.title
-                              ? hw.title.length > 80
-                                ? hw.title.slice(0, 80) + "…"
-                                : hw.title
+                      <div className="font-medium text-gray-800">
+                        {hw.title
+                          ? hw.title.length > 80
+                            ? hw.title.slice(0, 80) + "…"
+                            : hw.title
+                          : hw.text
+                            ? hw.text.length > 120
+                              ? hw.text.slice(0, 120) + "…"
                               : hw.text
-                              ? hw.text.length > 120
-                                ? hw.text.slice(0, 120) + "…"
-                                : hw.text
-                              : "(No text)"}
-                          </div>
-                          {hw.title && hw.text && (
-                            <div className="text-sm text-gray-600 mt-1">
-                              {hw.text.length > 120 ? hw.text.slice(0, 120) + "…" : hw.text}
-                            </div>
-                          )}
+                            : "(No text)"}
+                      </div>
+                      {hw.title && hw.text && (
+                        <div className="text-sm text-gray-600 mt-1">
+                          {hw.text.length > 120 ? hw.text.slice(0, 120) + "…" : hw.text}
+                        </div>
+                      )}
                       <div className="text-xs text-gray-500 mt-1">
                         {recipientsList} · {dateStr}
                       </div>

@@ -11,7 +11,11 @@ export type NoticePayload = {
 
 export type Notice = NoticePayload & { id: string; createdAt: string };
 
-export const API_BASE = 'https://school-bos-backend.onrender.com/schoolApp/';
+import { SCHOOL_API_BASE, buildApiUrl } from '../config/api';
+
+// Re-export for backward compatibility with files that import API_BASE from this module
+export const API_BASE = SCHOOL_API_BASE;
+
 
 async function handleResponse(resp: Response) {
   if (!resp.ok) {
@@ -24,7 +28,7 @@ async function handleResponse(resp: Response) {
 }
 
 export async function fetchNotices(audience?: 'students' | 'teachers', className?: string): Promise<Notice[]> {
-  const url = new URL(API_BASE + 'notices/');
+  const url = new URL(buildApiUrl(API_BASE, 'notices/'));
   if (audience) url.searchParams.set('audience', audience);
   if (className) url.searchParams.set('class_name', className);
   const res = await fetch(String(url), { method: 'GET' });
@@ -32,7 +36,7 @@ export async function fetchNotices(audience?: 'students' | 'teachers', className
 }
 
 export async function createNotice(payload: NoticePayload): Promise<Notice> {
-  const res = await fetch(API_BASE + 'notices/', {
+  const res = await fetch(buildApiUrl(API_BASE, 'notices/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -41,7 +45,7 @@ export async function createNotice(payload: NoticePayload): Promise<Notice> {
 }
 
 export async function updateNotice(id: string, payload: NoticePayload): Promise<Notice> {
-  const res = await fetch(API_BASE + `notices/${encodeURIComponent(id)}/`, {
+  const res = await fetch(buildApiUrl(API_BASE, 'notices', `${encodeURIComponent(id)}/`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -50,6 +54,6 @@ export async function updateNotice(id: string, payload: NoticePayload): Promise<
 }
 
 export async function deleteNotice(id: string): Promise<void> {
-  const res = await fetch(API_BASE + `notices/${encodeURIComponent(id)}/`, { method: 'DELETE' });
+  const res = await fetch(buildApiUrl(API_BASE, 'notices', `${encodeURIComponent(id)}/`), { method: 'DELETE' });
   await handleResponse(res);
 }
