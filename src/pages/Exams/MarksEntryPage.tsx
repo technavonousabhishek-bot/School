@@ -32,7 +32,6 @@ export default function MarksEntryPage() {
   const [marks, setMarks] = useState<Record<number, Record<number, number>>>({});
   const [maxMarks, setMaxMarks] = useState<Record<number, number>>({});
   const [saving, setSaving] = useState(false);
-  const [topPerformers, setTopPerformers] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(true); // default editable
 
   useEffect(() => {
