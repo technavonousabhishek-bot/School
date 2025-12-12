@@ -311,7 +311,7 @@ export default function AddTeacher() {
 
     try {
       let res: Response | null = null;
-      const url = isEditMode ? buildApiUrl(API_ENDPOINTS.account.teachers, id!, 'update') : buildApiUrl(API_ENDPOINTS.account.teachers, 'create');
+      const url = isEditMode ? buildApiUrl(API_ENDPOINTS.account.teachers, id!, 'update/') : buildApiUrl(API_ENDPOINTS.account.teachers, 'create/');
       const method = isEditMode ? "PUT" : "POST";
 
       res = await fetch(url, {

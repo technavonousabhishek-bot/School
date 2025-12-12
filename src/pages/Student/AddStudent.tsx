@@ -298,7 +298,7 @@ export default function AddStudent() {
       fd.append("documents_meta", JSON.stringify(docsMeta));
 
       // Decide endpoint/method
-      const url = isEditMode && id ? buildApiUrl(API_ENDPOINTS.account.students, id, 'update') : buildApiUrl(API_ENDPOINTS.account.students, 'create');
+      const url = isEditMode && id ? buildApiUrl(API_ENDPOINTS.account.students, id, 'update/') : buildApiUrl(API_ENDPOINTS.account.students, 'create/');
       const method = isEditMode && id ? "PUT" : "POST";
 
       // Build headers: do NOT set Content-Type for multipart; browser will set boundary
